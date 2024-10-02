@@ -1,0 +1,196 @@
+﻿<h3>Chi tiết sản phẩm</h3>
+@page "/ChiTietSanPham"
+
+<div class="container">
+    <!-- Thông tin sản phẩm -->
+    <div class="row">
+        <!-- Hình ảnh sản phẩm -->
+        <div class="col-md-6">
+            <img src="/AnhSanPham/Image (1).png" class="img-fluid" alt="Áo đùi dễ 4.0">
+            <div class="row mt-2">
+                <div class="col">
+                    <img src="/AnhSanPham/Image (1).png" class="img-thumbnail" alt="Thumbnail 1">
+                </div>
+                <div class="col">
+                    <img src="/AnhSanPham/Image (1).png" class="img-thumbnail" alt="Thumbnail 2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin chi tiết bên phải -->
+        <div class="col-md-6">
+            <h2>Áo đùi dễ 4.0</h2>
+            <h3 class="text-success">100.000 VND</h3>
+            <!-- Thông tin người bán -->
+            <div class="d-flex align-items-center mb-3">
+                <!-- Hình đại diện người bán -->
+                <img src="/AnhAvatar/image 4.png" class="rounded-circle" alt="Người bán" style="width: 80px; height: 80px;">
+                <div class="ml-3">
+                    <p><strong>Nguyen Van A</strong></p>
+                    <p>Các sản phẩm đã bán: <strong>100</strong></p>
+                    <p class="text-success">Đang hoạt động</p>
+                </div>
+            </div>
+            <button class="btn btn-danger mb-2 w-100">Liên hệ người bán</button> <br />
+            <button class="btn btn-success mb-2 w-100">Liên hệ qua 011*****</button>
+            <p><strong>Chất liệu:</strong> 100% cotton, mềm mại và thoáng khí.</p>
+            <p><strong>Kích thước:</strong> S, M, L, XL.</p>
+        </div>
+    </div>
+
+    <!-- Mô tả sản phẩm -->
+    <div class="mt-4">
+        <h4>Mô tả sản phẩm</h4>
+        <ul>
+            <li>Chất liệu: 100% cotton, mềm mại và thoáng khí.</li>
+            <li>Thiết kế: Cổ áo đứng lịch sự, tay dài dễ gấp lên dễ dàng.</li>
+            <li>Màu sắc: Trắng, xanh dương, xám.</li>
+            <li>Kích thước: S, M, L, XL.</li>
+            <li>Chất lượng: Dệt chắc chắn, không phai màu sau nhiều lần giặt.</li>
+        </ul>
+    </div>
+
+    <!-- Đánh giá sản phẩm -->
+    <div class="mt-4">
+        <h4>Đánh giá</h4>
+        <div class="row">
+            <!-- Đánh giá 1 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- 5 ngôi sao -->
+                        <p class="mb-1">
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-secondary">&#9733;</span> <!-- Ngôi sao không được chọn -->
+                        </p>
+
+                        <!-- Bình luận -->
+                        <p class="card-text">Sản phẩm chất lượng rất tốt!</p>
+
+                        <!-- Hình ảnh và tên người đánh giá -->
+                        <div class="d-flex align-items-center mt-3">
+                            <img src="/AnhAvatar/image 4.png" class="rounded-circle" alt="Người đánh giá" style="width: 50px; height: 50px;">
+                            <div class="ml-3">
+                                <p class="font-weight-bold mb-0">Nguyen B</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Đánh giá 2 (có thể thêm các đánh giá khác) -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- 5 ngôi sao -->
+                        <p class="mb-1">
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                            <span class="text-warning">&#9733;</span>
+                        </p>
+
+                        <!-- Bình luận -->
+                        <p class="card-text">Rất đáng tiền, tôi sẽ mua lại lần nữa!</p>
+
+                        <!-- Hình ảnh và tên người đánh giá -->
+                        <div class="d-flex align-items-center mt-3">
+                            <img src="/AnhAvatar/image 4.png" class="rounded-circle" alt="Người đánh giá" style="width: 50px; height: 50px;">
+                            <div class="ml-3">
+                                <p class="font-weight-bold mb-0">Nguyen C</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thêm các đánh giá khác nếu cần -->
+        </div>
+    </div>
+
+    <!-- Sản phẩm liên quan -->
+    <div class="mt-4">
+        <h4>Sản phẩm liên quan</h4>
+        <div class="row">
+            <!-- Sản phẩm liên quan 1 -->
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="/AnhSanPham/ao.jpeg" class="card-img-top" alt="Sản phẩm liên quan">
+                    <div class="card-body">
+                        <p class="card-text">Tên sản phẩm</p>
+                        <p class="text-muted">
+                            <s class="old-price">250.000 VND</s>
+                            <span class="new-price">180.000 VND</span>
+                        </p>
+                        <!-- Địa chỉ và Thời gian đăng -->
+                        <div class="d-flex justify-content-between">
+                            <p class="text-muted mb-0">Cần Thơ</p>
+                            <p class="text-muted mb-0">15 phút trước</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sản phẩm liên quan 2 -->
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="/AnhSanPham/ao1.webp" class="card-img-top" alt="Sản phẩm liên quan">
+                    <div class="card-body">
+                        <p class="card-text">Tên sản phẩm</p>
+                        <p class="text-muted">
+                            <s class="old-price">250.000 VND</s>
+                            <span class="new-price">180.000 VND</span>
+                        </p>
+                        <!-- Địa chỉ và Thời gian đăng -->
+                        <div class="d-flex justify-content-between">
+                            <p class="text-muted mb-0">Hà Nội</p>
+                            <p class="text-muted mb-0">30 phút trước</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sản phẩm liên quan 3 -->
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="/AnhSanPham/t-shirt.webp" class="card-img-top" alt="Sản phẩm liên quan">
+                    <div class="card-body">
+                        <p class="card-text">Tên sản phẩm</p>
+                        <p class="text-muted">
+                            <s class="old-price">250.000 VND</s>
+                            <span class="new-price">180.000 VND</span>
+                        </p>
+                        <!-- Địa chỉ và Thời gian đăng -->
+                        <div class="d-flex justify-content-between">
+                            <p class="text-muted mb-0">Đà Nẵng</p>
+                            <p class="text-muted mb-0">1 giờ trước</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Thêm các sản phẩm liên quan khác nếu cần -->
+        </div>
+    </div>
+
+
+</div>
+<style>
+    .old-price {
+        color: black;
+    }
+
+    .new-price {
+        color: red;
+        font-weight: bold;
+    }
+
+</style>
+@code {
+    // Bạn có thể thêm logic xử lý của C# ở đây nếu cần
+}
