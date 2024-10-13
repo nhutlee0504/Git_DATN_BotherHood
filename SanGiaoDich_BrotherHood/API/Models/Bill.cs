@@ -36,7 +36,6 @@ namespace API.Models
 
         [ForeignKey("Account"), Column(TypeName = "varchar(20)")]
         public string UerName { get; set; }
-
         public Account Account { get; set; }
         public ICollection<BillDetail> billDetails { get; set; }
     }

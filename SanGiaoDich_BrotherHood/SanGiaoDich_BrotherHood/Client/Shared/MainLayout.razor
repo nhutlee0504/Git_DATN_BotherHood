@@ -1,17 +1,326 @@
 ﻿@inherits LayoutComponentBase
+@inject HttpClient http
+@inject IJSRuntime jsruntime
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #fff;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .logo img {
+        width: 50px;
+        height: auto;
+    }
+
+    .search-bar {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: #f9f9f9;
+    }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+    .menu {
+        display: flex;
+        gap: 15px;
+    }
+
+        .menu a {
+            text-decoration: none;
+            color: black;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+            .menu a:hover {
+                background-color: lightgray;
+            }
+
+    .auth-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+        .auth-buttons .register {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-buttons .login {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-buttons button:hover {
+            opacity: 0.8;
+        }
+
+    footer {
+        background-color: #ffffff;
+        padding: 20px 0;
+        border-top: 1px solid #ccc;
+    }
+
+    .footer-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: black;
+            font-weight: bold;
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+            .footer-section ul li {
+                margin-bottom: 8px;
+            }
+
+                .footer-section ul li a {
+                    text-decoration: none;
+                    color: #333;
+                    font-size: 14px;
+                }
+
+                    .footer-section ul li a:hover {
+                        color: #007BFF;
+                    }
+
+    .social-icons {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        gap: 10px;
+        padding-right: 150px;
+        padding-bottom: 90px;
+    }
+
+        .social-icons a {
+            color: #28a745;
+            top: 20px;
+        }
+</style>
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
     <div class="main">
-        <div class="top-row px-4">
-            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
-        </div>
+        @*Header*@
+        <header>
+            <nav class="navbar">
+                <div class="container">
+                    <div class="logo">
+                        <img src="/AnhGiaoDien/Logo.jpg" alt="Logo">
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Nhập sản phẩm tìm...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="menu">
+                        <a href="#">Trang chủ</a>
+                        <a href="sanpham">Sản phẩm</a>
+                        <a href="/PageGioHang">Giỏ hàng</a>
+                        <a href="orderdetails">Góp ý kiến</a>
+                        <a href="bill">Hóa đơn</a>
+                    </div>
+                    <div class="auth-buttons">
+                        @if (isLoading)
+                        {
+                            <span>Loading...</span>
+                        }
+                        else if (!IsLoggedIn)
+                        {
+                            <a href="register">
+                                <button class="register">Đăng ký</button>
+                            </a>
+                            <a href="login">
+                                <button class="login">Đăng nhập</button>
+                            </a>
+                        }
+                        else
+                        {
+                            <span>Xin chào, @accountInfo.UserName!</span>
+                            <button @onclick="Logout" class="logout">Đăng xuất</button>
+                        }
+                    </div>
+                </div>
+            </nav>
+        </header>
 
-        <div class="content px-4">
+        <div class="content">
             @Body
         </div>
+
+        @*Footer*@
+        <footer>
+            <div class="footer-container">
+                <div class="footer-section social-icons">
+                    <a href="#"><i class="fab fa-facebook-square" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-instagram" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-youtube" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-linkedin" style="font-size:36px"></i></a>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Trung tâm hỗ trợ khách hàng</h3>
+                    <ul>
+                        <li><a href="#">Quy tắc an toàn mua bán</a></li>
+                        <li><a href="#">Các câu hỏi thường gặp</a></li>
+                        <li><a href="#">Q&A</a></li>
+                        <li><a href="#">Liên hệ hỗ trợ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Về BrothersHood</h3>
+                    <ul>
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Đánh giá bảo mật</a></li>
+                        <li><a href="#">Giải quyết tranh chấp</a></li>
+                        <li><a href="#">Tuyển dụng</a></li>
+                        <li><a href="#">Truyền thông</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">API</a></li>
+                        <li><a href="#">AI API</a></li>
+                        <li><a href="#">Source Web</a></li>
+                        <li><a href="#">Dev tool</a></li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
     </div>
 </div>
+@code {
+    private bool isLoading = true;
+    private string errorMessage;
+    private AccountInfoDto accountInfo;
+    private bool IsLoggedIn { get; set; } = false; // Biến để theo dõi trạng thái đăng nhập
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckTokenAndLoadAccountInfo();
+    }
+
+    private async Task CheckTokenAndLoadAccountInfo()
+    {
+        var token = await jsruntime.InvokeAsync<string>("localStorage.getItem", "token");
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Thiết lập token cho yêu cầu HTTP
+            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            await LoadAccountInfo();
+        }
+        else
+        {
+            isLoading = false; // Không cần tải thông tin tài khoản
+        }
+    }
+
+    private async Task LoadAccountInfo()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var response = await http.GetAsync("api/User/GetMyInfo");
+
+            if (response.IsSuccessStatusCode)
+            {
+                accountInfo = await response.Content.ReadFromJsonAsync<AccountInfoDto>();
+                IsLoggedIn = true; // Đánh dấu là người dùng đã đăng nhập
+            }
+            else
+            {
+                errorMessage = await response.Content.ReadAsStringAsync();
+                IsLoggedIn = false; // Đánh dấu là người dùng chưa đăng nhập
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Có lỗi xảy ra: " + ex.Message;
+            IsLoggedIn = false; // Đánh dấu là người dùng chưa đăng nhập
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class AccountInfoDto
+    {
+        public string UserName { get; set; }
+        public string FullName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Gender { get; set; }
+        public DateTime? Birthday { get; set; }
+        public string ImageAccount { get; set; }
+    }
+
+    private async Task Logout()
+    {
+        // Xóa token khỏi local storage và cập nhật trạng thái
+        await jsruntime.InvokeVoidAsync("localStorage.removeItem", "token");
+        IsLoggedIn = false;
+        accountInfo = null; // Đặt lại thông tin tài khoản
+    }
+}
+

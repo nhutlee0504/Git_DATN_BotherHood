@@ -8,6 +8,7 @@ namespace API.Models
     public class Product
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDProduct { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm"), Column(TypeName = "nvarchar(250)")]
@@ -28,10 +29,14 @@ namespace API.Models
         [Column(TypeName = "nvarchar(50)")]
         public string Status { get; set; }
 
-        public DateTime DateSubmited { get; set; }
-
         [ForeignKey("Account"), Column(TypeName = "varchar(20)")]
         public string UserName { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? StartDate { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? EndDate { get; set; }
 
         public Account Account { get; set; }
         public ICollection<Cart> carts { get; set; }

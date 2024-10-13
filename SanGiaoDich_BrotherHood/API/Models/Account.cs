@@ -10,24 +10,21 @@ namespace API.Models
         [Key, Column(TypeName = "varchar(20)"), Required(ErrorMessage = "Vui lòng nhập tên tài khoản")]
         public string UserName { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu"), Column(TypeName = "varchar(40)"), MinLength(6, ErrorMessage = "Mật khẩu ít nhất 6 kí tự")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu"), Column(TypeName = "varchar(100)"), MinLength(6, ErrorMessage = "Mật khẩu ít nhất 6 kí tự")]
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập tên"), Column(TypeName = "nvarchar(150)")]
+        [Column(TypeName = "nvarchar(150)")]
         public string FullName { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập Email"), EmailAddress(ErrorMessage = "Email không đúng định dạng"), Column(TypeName = "varchar(150)")]
+        [EmailAddress(ErrorMessage = "Email không đúng định dạng"), Column(TypeName = "varchar(150)")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập số điện thoại"), Column(TypeName = "varchar(12)")]
-        [RegularExpression(@"^(0\d{9}|84\d{9})$", ErrorMessage = "Số điện thoại không đúng định dạng")]
+        [Column(TypeName = "varchar(12)")]
+        [RegularExpression(@"^(0[3|5|7|8|9])([0-9]{8})$|^(02)([0-9]{8})$", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn giới tính"), Column(TypeName = "nvarchar(6)")]
+        [Column(TypeName = "nvarchar(6)")]
         public string Gender { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập CCCD"), Column(TypeName = "varchar(12)")]
-        public string IDCard { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn ngày sinh")]
         public DateTime? Birthday { get; set; }
@@ -35,8 +32,10 @@ namespace API.Models
         [Required, Column(TypeName = "nvarchar(50)")]
         public string Role { get; set; }
 
+        [Column(TypeName = "ntext")]
         public string Introduce { get; set; }
 
+        [Column(TypeName = "varchar(150)")]
         public string ImageAccount { get; set; }
 
         public DateTime CreatedTime { get; set; }
@@ -49,7 +48,7 @@ namespace API.Models
         public ICollection<Cart> carts { get; set; }
         public ICollection<Favorite> favorites { get; set; }
         public ICollection<Rating> ratings { get; set; }
-        public ICollection<AddressDetail> addressDetails {  get; set; } 
+        public ICollection<AddressDetail> addressDetails { get; set; }
         public ICollection<Bill> bills { get; set; }
         public ICollection<Message> messageSend { get; set; }
         public ICollection<Message> messagesReceive { get; set; }

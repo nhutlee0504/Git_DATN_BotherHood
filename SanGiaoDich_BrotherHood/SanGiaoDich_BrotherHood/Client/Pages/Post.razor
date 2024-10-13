@@ -1,0 +1,142 @@
+﻿@page "/post"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<h4>Thông tin sản phẩm</h4>
+
+<div class="form-group">
+    <label for="ProductImages">Hình ảnh sản phẩm:</label>
+    <div class="row">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="col-md-4">
+                <div class="image-preview border d-flex align-items-center justify-content-center" @onclick="@(() => SelectImage(i))" style="height: 200px;">
+                    @if (selectedFiles.Count > i && selectedFiles[i] != null)
+                    {
+                        <img src="@selectedFiles[i].DataUrl" class="img-fluid" alt="Hình ảnh sản phẩm" />
+                    }
+                    else
+                    {
+                        <span class="placeholder-text">Chưa có hình ảnh</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <button @onclick="AddImage" class="btn btn-primary mt-2">Chọn hình ảnh</button>
+    <span>Xem quy định về <a href="#">Cách chụp ảnh và quay sản phẩm</a> </span>
+</div>
+
+<div class="form-group">
+    <label for="ProductName">Tên sản phẩm:</label>
+    <input type="text" @bind="ProductName" class="form-control" placeholder="Nhập tên sản phẩm" id="ProductName" />
+</div>
+
+<div class="form-group">
+    <label for="ProductType">Loại sản phẩm:</label>
+    <input type="text" @bind="ProductType" class="form-control" placeholder="Nhập loại sản phẩm" id="ProductType" />
+</div>
+
+<div class="form-group">
+    <label for="ProductPrice">Giá sản phẩm:</label>
+    <input type="number" @bind="ProductPrice" class="form-control" placeholder="Nhập giá sản phẩm" id="ProductPrice" />
+</div>
+
+<div class="form-group">
+    <label for="ProductQuantity">Số lượng sản phẩm:</label>
+    <input type="number" @bind="ProductQuantity" class="form-control" placeholder="Nhập số lượng sản phẩm" id="ProductQuantity" />
+</div>
+
+<div class="text-right">
+    <button @onclick="SaveProduct" class="btn btn-success">Đăng bán</button>
+</div>
+
+<div class="form-group">
+    <label for="ProductDescription">Mô tả sản phẩm chi tiết:</label>
+    <textarea class="form-control" id="ProductDescription" rows="4" placeholder="Nhập mô tả chi tiết về sản phẩm..."></textarea>
+    <small class="form-text text-muted">
+        Gợi ý:
+        <ul>
+            <li> Chất liệu: 100% cotton, mềm mại và thoáng khí.</li>
+            <li> Thiết kế: Cổ áo đính cúc, tay dài có thể gấp lên dễ dàng.</li>
+            <li> Màu sắc: Trắng, xanh dương, xám.</li>
+            <li> Kích thước: S, M, L, XL.</li>
+            <li> Chất lượng: Dệt chắc chắn, không phai màu sau nhiều lần giặt.</li>
+        </ul>
+    </small>
+</div>
+
+@code {
+    private string ProductName { get; set; }
+    private decimal ProductPrice { get; set; }
+    private string ProductType { get; set; }
+    private int ProductQuantity { get; set; }
+
+    private List<ImageFile> selectedFiles = new List<ImageFile>
+    {
+        null, null, null  // Khởi tạo ba khung trống
+    };
+
+    private class ImageFile
+    {
+        public IBrowserFile File { get; set; }
+        public string DataUrl { get; set; }
+    }
+
+    private async Task AddImage()
+    {
+        // Hiện hộp thoại chọn tệp
+        var inputFile = await JSRuntime.InvokeAsync<IBrowserFile>("showFileDialog");
+        if (inputFile != null)
+        {
+            for (int i = 0; i < selectedFiles.Count; i++)
+            {
+                if (selectedFiles[i] == null)
+                {
+                    selectedFiles[i] = new ImageFile
+                        {
+                            File = inputFile,
+                            DataUrl = await GetImageDataUrl(inputFile)
+                        };
+                    break;
+                }
+            }
+        }
+    }
+
+    private async Task<string> GetImageDataUrl(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 3); // Giới hạn 3MB
+        var buffer = new byte[file.Size];
+        await stream.ReadAsync(buffer);
+        return $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    }
+
+    private void SelectImage(int index)
+    {
+        // Có thể thêm xử lý khi chọn khung hình ảnh
+    }
+
+    private async Task SaveProduct()
+    {
+        // Xử lý lưu sản phẩm hoặc gửi dữ liệu sản phẩm tới server
+        Console.WriteLine($"Tên sản phẩm: {ProductName}");
+        Console.WriteLine($"Giá sản phẩm: {ProductPrice}");
+        Console.WriteLine($"Loại sản phẩm: {ProductType}");
+        Console.WriteLine($"Số lượng sản phẩm: {ProductQuantity}");
+
+        // Hiển thị danh sách hình ảnh đã chọn
+        foreach (var file in selectedFiles)
+        {
+            if (file != null)
+            {
+                Console.WriteLine($"Hình ảnh đã chọn: {file.File.Name}");
+            }
+        }
+
+        // Thực hiện hành động sau khi lưu, như chuyển hướng hoặc hiển thị thông báo
+        await JSRuntime.InvokeVoidAsync("alert", "Sản phẩm đã được lưu thành công!");
+    }
+}
