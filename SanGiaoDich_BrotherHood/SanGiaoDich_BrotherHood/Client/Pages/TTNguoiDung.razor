@@ -1,0 +1,185 @@
+﻿@page "/ThongTinNguoiDung"
+
+@* @model DashboardViewModel *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left Sidebar: User Info -->
+        <div class="col-md-4">
+            <!-- User Profile Card -->
+            <div class="card mb-3">
+                <div class="card-body text-center">
+                    <img src="/AnhAvatar/image 4.png" class="rounded-circle img-fluid" style="width: 100px;">
+                    <h5 class="mt-3">Tên của bạn</h5>
+                    <p class="text-muted">#CodeUser</p>
+                    <button class="btn btn-outline-primary btn-sm mb-3">
+                        <i class="fa fa-upload"></i> Tải ảnh lên
+                    </button>
+
+                    <!-- User Info -->
+                    <p><i class="fa fa-calendar"></i> Thời gian tham gia: 1/1/2024</p>
+                    <p><i class="fa fa-map-marker-alt"></i> Địa chỉ: Số 1 đường 1, phường Thường Thạnh, quận Cái Răng, tỉnh Cần Thơ</p>
+                </div>
+            </div>
+
+            <!-- Order and Reputation Info -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p><i class="fa fa-shopping-cart"></i> Tổng số đơn hàng đã mua: 0</p>
+                    <p><i class="fa-solid fa-shopping-bag"></i> Tổng số đơn hàng đã bán: 0</p>
+                    <p>
+                        Mức độ uy tín:
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star"></span>
+                        <span class="fa fa-star"></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Payment Info with Icon -->
+            <div class="card mb-3">
+                <div class="card-body d-flex align-items-center justify-content-start">
+                    <i class="fa-solid fa-wallet" style="font-size: 30px; margin-right: 15px;"></i> <!-- Icon for payment info -->
+                    <div>
+                        <p>Tổng số tiền đã nạp: 0</p>
+                        <p>Tổng số tiền đã thanh toán: 0</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-6 d-grid gap-2">
+                    <button class="btn btn-outline-success">Cập nhật thông tin</button>
+                    <button class="btn btn-outline-secondary">Đổi mật khẩu</button>
+                </div>
+                <div class="col-6 d-grid gap-2">
+                    <a href="post">
+                        <button class="btn btn-success">Thêm sản phẩm</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Product Listings -->
+        <div class="col-md-8">
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Bài đăng của bạn</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Sản phẩm yêu thích</a>
+                </li>
+            </ul>
+
+            <!-- Product Card 1 -->
+            <div class="card mb-3 position-relative">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="/AnhSanPham/ao.jpeg" class="img-fluid" alt="Áo thun">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Áo thun</h5>
+                            <p class="card-text">199.000 VND</p>
+                            <p class="card-text">Loại: Áo</p>
+                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
+                            <p class="card-text">
+                                Trạng thái:
+                                <span class="text-success">Còn</span>
+                            </p>
+                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-success">Liên hệ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="position-absolute top-0 end-0 p-2">
+                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+                </div>
+            </div>
+
+            <!-- Product Card 2 -->
+            <div class="card mb-3 position-relative">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="/AnhSanPham/t-shirt.webp" class="img-fluid" alt="Áo thun">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Áo thun</h5>
+                            <p class="card-text">199.000 VND</p>
+                            <p class="card-text">Loại: Áo</p>
+                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
+                            <p class="card-text">
+                                Trạng thái:
+                                <span class="text-danger">Hết</span>
+                            </p>
+                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-success">Liên hệ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="position-absolute top-0 end-0 p-2">
+                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+                </div>
+            </div>
+
+            <!-- Product Card 3 -->
+            <div class="card mb-3 position-relative">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="/AnhSanPham/ao1.webp" class="img-fluid" alt="Áo thun">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Áo thun</h5>
+                            <p class="card-text">199.000 VND</p>
+                            <p class="card-text">Loại: Áo</p>
+                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
+                            <p class="card-text">
+                                Trạng thái:
+                                <span class="text-success">Còn</span>
+                            </p>
+                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-success">Liên hệ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="position-absolute top-0 end-0 p-2">
+                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">...</a></li>
+                    <li class="page-item"><a class="page-link" href="#">67</a></li>
+                    <li class="page-item"><a class="page-link" href="#">68</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    .checked {
+        color: yellow;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+

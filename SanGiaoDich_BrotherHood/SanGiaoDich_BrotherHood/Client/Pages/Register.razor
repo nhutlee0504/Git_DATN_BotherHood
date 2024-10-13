@@ -1,0 +1,209 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<style>
+    .alert {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background-color: #dc3545;
+        color: #ffffff;
+    }
+
+    .alert-success {
+        background-color: #28a745;
+        color: #ffffff;
+    }
+
+    .btn-google, .btn-facebook {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+        .btn-google img, .btn-facebook img {
+            width: 20px;
+            height: 20px;
+        }
+
+    .btn-google {
+        background-color: white;
+        border-color: bl;
+    }
+
+    .btn-facebook {
+        background-color: #4267B2;
+        color: white;
+    }
+
+    /* Khung nhỏ gọn */
+    .form-container {
+        max-width: 400px; /* Điều chỉnh kích thước khung */
+        margin: 0 auto; /* Căn giữa khung */
+        padding: 2rem; /* Điều chỉnh độ dày padding */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        /* Điều chỉnh khoảng cách trong form */
+        .form-container h2, .form-container .mb-3, .form-container .text-center {
+            margin-bottom: 1rem; /* Điều chỉnh khoảng cách giữa các phần */
+        }
+
+        /* Giảm chiều cao nút bấm */
+        .form-container button {
+            height: 40px;
+        }
+
+    /* Gạch chân cho thẻ a */
+    a {
+        text-decoration: underline; /* Thêm gạch chân */
+        color: #007bff; /* Màu cho thẻ a */
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center mt-5 mb-5">
+        <div class="col-md-6">
+            <div class="form-container p-4 rounded bg-white shadow-sm">
+                <h2 class="text-center mb-4">Đăng kí tài khoản</h2>
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success" role="alert">
+                        @successMessage
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorMessage
+                    </div>
+                }
+
+                <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="UserName" class="form-label">Tên tài khoản</label>
+                        <InputText id="UserName" class="form-control rounded-start" @bind-Value="loginModel.UserName" placeholder="Nhập tên tài khoản" />
+                        <ValidationMessage For="@(() => loginModel.UserName)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <InputText id="Password" type="password" class="form-control rounded-start" @bind-Value="loginModel.Password" placeholder="Nhập mật khẩu" />
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Confirm " class="form-label">Nhập lại mật khẩu</label>
+                        <div class="input-group">
+                            <InputText id="Confirm" type="password" class="form-control rounded-start" @bind-Value="loginModel.Password" placeholder="Nhập mật khẩu" />
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" />
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" @bind-value="checKed" class="form-check-input" id="checkbox">
+                        <label class="form-check-label" for="checkbox">Tôi đồng ý với <a href="#">Chính sách và điều khoản</a></label>
+                        @if (!string.IsNullOrEmpty(errorChecked))
+                        {
+                            <br />
+                            <span class="text-danger">@errorChecked</span>
+                        }
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block w-100 rounded-start">Đăng kí tài khoản</button>
+                    <div class="text-right mt-3">
+                        <a href="forgotPass" class="text-primary">Quên mật khẩu?</a>
+                    </div>
+                    <div class="text-center mt-3">
+                        Bạn đã có tài khoản? <a class="text-primary" href="Pages/Register">Đăng nhập ngay</a><br />
+                    </div>
+                    <div class="text-center mt-3"><strong>Hoặc đăng nhập bằng</strong></div>
+                    <div class="text-center mt-3">
+                        <a onclick="LoginWithGoogle" class="btn btn-google btn-block rounded-start border w-100">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" />
+                            Đăng nhập với Google
+                        </a>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a onclick="LoginWithFacebook" class="btn btn-facebook btn-block rounded-start w-100" style="color: white;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook logo" />
+                            Đăng nhập với Facebook
+                        </a>
+                    </div>
+
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public class AccountLogin
+    {
+        [Required(ErrorMessage = "Tên tài khoản không được bỏ trống.")]
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Mật khẩu không được bỏ trống.")]
+        public string Password { get; set; }
+    }
+
+    private AccountLogin loginModel = new AccountLogin();
+    private string errorMessage;
+    private string successMessage;
+    private bool checKed = false;
+    private string errorChecked;
+
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+
+            var response = await HttpClient.PostAsJsonAsync("api/account/login", loginModel);
+            if (!checKed)
+            {
+                errorChecked = "Bạn cần đồng ý với chính sách và điều khoản";
+                return;
+            }
+            else
+            {
+                errorChecked = null;
+            }
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "LoggedInUser", loginModel.UserName);
+                successMessage = "Đăng nhập thành công!";
+                errorMessage = null;
+                NavigationManager.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Tài khoản hoặc mật khẩu không đúng";
+                successMessage = null;
+                await ClearErrorMessageAfterDelay();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Đã xảy ra lỗi: " + ex.Message;
+            successMessage = null;
+            await ClearErrorMessageAfterDelay();
+        }
+    }
+
+    private async Task ClearErrorMessageAfterDelay()
+    {
+        await Task.Delay(3000);
+        errorMessage = null;
+        StateHasChanged();
+    }
+}
