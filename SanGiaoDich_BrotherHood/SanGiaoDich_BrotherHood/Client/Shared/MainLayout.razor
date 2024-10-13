@@ -1,31 +1,237 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #fff;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .logo img {
+        width: 50px;
+        height: auto;
+    }
+
+    .search-bar {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: #f9f9f9;
+    }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+    .menu {
+        display: flex;
+        gap: 15px;
+    }
+
+        .menu a {
+            text-decoration: none;
+            color: black;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+            .menu a:hover {
+                background-color: lightgray;
+            }
+
+    .auth-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+        .auth-buttons .register {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-buttons .login {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-buttons button:hover {
+            opacity: 0.8;
+        }
+
+    footer {
+        background-color: #ffffff;
+        padding: 20px 0;
+        border-top: 1px solid #ccc;
+    }
+
+    .footer-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: black;
+            font-weight: bold;
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+            .footer-section ul li {
+                margin-bottom: 8px;
+            }
+
+                .footer-section ul li a {
+                    text-decoration: none;
+                    color: #333;
+                    font-size: 14px;
+                }
+
+                    .footer-section ul li a:hover {
+                        color: #007BFF;
+                    }
+
+    .social-icons {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        gap: 10px;
+        padding-right: 150px;
+        padding-bottom: 90px;
+    }
+
+        .social-icons a {
+            color: #28a745;
+            top: 20px;
+        }
+</style>
+
+<div class="page">
     <div class="main">
-        <div class="top-row px-4">
-            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
-        </div>
-        <div class="top-row px-4">
-            <a href="login" target="" class="ml-md-auto">Login</a>
-        </div>
-        <div class="top-row px-4">
-            <a href="register" target="" class="ml-md-auto">Register</a>
-        </div>
-        <div class="top-row px-4">
-            <a href="post" target="" class="ml-md-auto">Post</a>
-        </div>
-        <div class="top-row px-4">
-            <a href="orderdetails" target="" class="ml-md-auto">OrderDetails</a>
-        </div>
-        <div class="top-row px-4">
-            <a href="bill" target="" class="ml-md-auto">Bill</a>
-        </div>
-        <div class="content px-4">
+        @*Header*@
+        <header>
+            <nav class="navbar">
+                <div class="container">
+                    <div class="logo">
+                        <img src="/AnhGiaoDien/Logo.jpg" alt="Logo">
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Nhập sản phẩm tìm...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="menu">
+                        <a href="#">Trang chủ</a>
+                        <a href="sanpham">Sản phẩm</a>
+                        <a href="/PageGioHang">Giỏ hàng</a>
+                        <a href="orderdetails">Góp ý kiến</a>
+                        <a href="bill">Hóa đơn</a>
+                    </div>
+                    <div class="auth-buttons">
+                        <a href="register">
+                            <button class="register">Đăng ký</button>
+                        </a>
+                        <a href="login">
+                            <button class="login">Đăng nhập</button>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="content">
             @Body
         </div>
+
+        @*Footer*@
+        <footer>
+            <div class="footer-container">
+                <div class="footer-section social-icons">
+                    <a href="#"><i class="fab fa-facebook-square" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-instagram" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-youtube" style="font-size:36px"></i></a>
+                    <a href="#"><i class="fab fa-linkedin" style="font-size:36px"></i></a>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Trung tâm hỗ trợ khách hàng</h3>
+                    <ul>
+                        <li><a href="#">Quy tắc an toàn mua bán</a></li>
+                        <li><a href="#">Các câu hỏi thường gặp</a></li>
+                        <li><a href="#">Q&A</a></li>
+                        <li><a href="#">Liên hệ hỗ trợ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Về BrothersHood</h3>
+                    <ul>
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Đánh giá bảo mật</a></li>
+                        <li><a href="#">Giải quyết tranh chấp</a></li>
+                        <li><a href="#">Tuyển dụng</a></li>
+                        <li><a href="#">Truyền thông</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">API</a></li>
+                        <li><a href="#">AI API</a></li>
+                        <li><a href="#">Source Web</a></li>
+                        <li><a href="#">Dev tool</a></li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
     </div>
 </div>
+
+
