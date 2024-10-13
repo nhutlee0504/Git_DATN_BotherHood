@@ -1,0 +1,184 @@
+﻿@page "/orderdetails"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<style>
+    .custom-border {
+        border: 1px solid #000; /* Thay đổi màu sắc và độ dày của border */
+    }
+
+    .small-text {
+        font-size: 0.8rem; /* Điều chỉnh kích thước chữ nhỏ lại */
+    }
+
+    .small-label {
+        font-size: 1.0rem; /* Kích thước chữ nhỏ hơn cho label */
+    }
+
+    /* Loại bỏ viền của bảng */
+    .no-border {
+        border: none !important; /* Không có viền */
+    }
+
+        .no-border td,
+        .no-border th {
+            border: none !important; /* Không có viền cho các ô */
+        }
+
+    .custom-box {
+        background-color: #f8f9fa; /* Màu nền của khung */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Bóng đổ phía dưới */
+        border-radius: 5px; /* Bo góc cho khung */
+    }
+</style>
+
+<h3>Chi tiết đơn hàng</h3>
+<div class="container mt-4">
+    <!-- Khung bao ngoài -->
+    <div class="custom-box p-3">
+        <div class="row">
+            <div class="col-md-6">
+                <label class="me-2"><strong>Đơn hàng:</strong></label>
+                <span class="text-success">#12345</span>
+            </div>
+            <div class="col-md-6">
+                <label class="me-2"><strong>Ngày đặt:</strong></label>
+                <span class=" ">2024-10-05</span>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label class="me-2"><strong>Trạng thái:</strong></label>
+                <span class="text-success">Đang xử lý</span>
+            </div>
+            <div class="col-md-6">
+                <label class="me-2"><strong>Ngày nhận</strong></label>
+                <span class="">2024-10-10</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="custom-border p-3">
+                <table class="table text-center no-border">
+                    <!-- Thêm lớp no-border ở đây -->
+                    <thead>
+                        <tr>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Tổng tiền</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="form-control-plaintext">Sản phẩm ABC</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">3</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">100,000 VND</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">300,000 VND</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success">Đánh giá</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="form-control-plaintext">Sản phẩm ABC</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">3</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">100,000 VND</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">300,000 VND</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success">Đánh giá</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="form-control-plaintext">Sản phẩm ABC</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">3</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">100,000 VND</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">300,000 VND</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success">Đánh giá</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="form-control-plaintext">Sản phẩm ABC</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">3</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">100,000 VND</span>
+                            </td>
+                            <td>
+                                <span class="form-control-plaintext">300,000 VND</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success">Đánh giá</button>
+                            </td>
+                        </tr>
+                        <!-- Bạn có thể thêm nhiều hàng thông tin sản phẩm tại đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sắp xếp lại khung người bán và người mua -->
+        <div class="col-md-3">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="custom-border p-3">
+                        <h5>Người bán</h5>
+                        <p class="mb-1 small-text">Tên người bán: TÔN THẤT HUY</p>
+                        <p class="mb-1 small-text">Số điện thoại: 39485895235</p>
+                        <p class="mb-1 small-text">Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+                <div class="col-md-12 mt-2">
+                    <div class="custom-border p-3">
+                        <h5>Người mua</h5>
+                        <p class="mb-1 small-text">Tên người mua: Lê Minh Nhựt</p>
+                        <p class="mb-1 small-text">Số điện thoại: 0838427384</p>
+                        <p class="mb-1 small-text">Địa chỉ: Ninh Kiều, Cần Thơ, Cà Mau</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code {
+
+}
