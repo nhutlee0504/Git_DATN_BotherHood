@@ -119,9 +119,9 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
 
         [HttpPut]
         [Route("ChangePassword")]
-        public async Task<IActionResult> ChangePassword(string password)
+        public async Task<IActionResult> ChangePassword(string username, string password)
         {
-            return Ok(await _user.ChangePassword(password));
+            return Ok(await _user.ChangePassword(username,password));
         }
 
     }
