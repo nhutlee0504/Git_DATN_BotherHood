@@ -1,6 +1,7 @@
 ﻿@page "/dangnhap"
 @inject HttpClient http
 @inject IJSRuntime jsruntime
+@inject NavigationManager navigationManager
 
 <h3>Đăng Nhập</h3>
 
@@ -58,6 +59,9 @@
 
                 // Thiết lập token cho các yêu cầu HTTP sau này
                 http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+
+                // Quay về trang chủ
+                navigationManager.NavigateTo("/", forceLoad: true);
             }
             else
             {
@@ -71,4 +75,3 @@
         }
     }
 }
-
