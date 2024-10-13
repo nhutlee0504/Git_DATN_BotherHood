@@ -155,10 +155,9 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             await _context.SaveChangesAsync();
             return user; // Trả về thông tin đã cập nhật
         }
-        public async Task<Account> ChangePassword(string password)
+        public async Task<Account> ChangePassword(string username, string password)
         {
-            var user = GetUserInfoFromClaims();
-            var userFind = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == user.UserName);
+            var userFind = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
             userFind.Password = HashPassword(password);
             await _context.SaveChangesAsync();
             return userFind;

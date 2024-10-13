@@ -15,6 +15,6 @@ namespace SanGiaoDich_BrotherHood.Server.Services
         public Task<Account> GetAccountInfo();
         public Task<Account> GetAccountByUserName(string userName);
         public Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto, IFormFile imageFile = null);
-        public Task<Account> ChangePassword(string password);
+        public Task<Account> ChangePassword(string username, string password);
     }
 }
