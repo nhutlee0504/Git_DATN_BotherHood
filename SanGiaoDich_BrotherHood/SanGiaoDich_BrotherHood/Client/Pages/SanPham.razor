@@ -1,10 +1,21 @@
-﻿<h3>SanPham</h3>
-@page "/sanpham"
-@code {
-
-}
+﻿@page "/sanpham"
+@using SanGiaoDich_BrotherHood.Shared.Models
+@inject NavigationManager navigation
+@inject HttpClient http
 
 <div class="container-fluid mt-3">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#"><i class="fa-solid fa-house" style="color: #667085;"></i></a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+            </ol>
+        </nav>
+    </div>
+
     <div class="row">
         <!-- Sidebar Filters -->
         <div class="col-lg-3">
@@ -61,81 +72,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Product 2 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <img src="/AnhSanPham/ao1.webp" class="card-img-top" alt="Tên sản phẩm">
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 2</h5>
-                            <p class="card-text text-danger"><strong>150.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 3 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <img src="/AnhSanPham/ao3.webp" class="card-img-top" alt="Tên sản phẩm">
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 3</h5>
-                            <p class="card-text text-danger"><strong>120.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 4 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <img src="/AnhSanPham/ao4.webp" class="card-img-top" alt="Tên sản phẩm">
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 4</h5>
-                            <p class="card-text text-danger"><strong>180.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 5 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <img src="/AnhSanPham/t-shirt.webp" class="card-img-top" alt="Tên sản phẩm">
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 5</h5>
-                            <p class="card-text text-danger"><strong>200.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 6 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <img src="/AnhSanPham/ao2.webp" class="card-img-top" alt="Tên sản phẩm">
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 6</h5>
-                            <p class="card-text text-danger"><strong>170.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Pagination -->
@@ -151,5 +87,13 @@
         </div>
     </div>
 </div>
+
+@code {
+    private List<Product> products;
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+}
 
 
