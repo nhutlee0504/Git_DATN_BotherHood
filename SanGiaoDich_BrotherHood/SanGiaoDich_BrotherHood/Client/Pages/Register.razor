@@ -1,8 +1,12 @@
 ﻿@page "/register"
 @using System.ComponentModel.DataAnnotations
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime js
+@using SanGiaoDich_BrotherHood.Shared.Dto
+@using SanGiaoDich_BrotherHood.Shared.Models
+@using System.Security.Cryptography
+@using System.Text
 
 <style>
     .alert {
@@ -87,28 +91,26 @@
                     </div>
                 }
 
-                <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <EditForm Model="@register" OnValidSubmit="SubmitLogin">
                     <DataAnnotationsValidator />
-                    <ValidationSummary />
-
                     <div class="mb-3">
                         <label for="UserName" class="form-label">Tên tài khoản</label>
-                        <InputText id="UserName" class="form-control rounded-start" @bind-Value="loginModel.UserName" placeholder="Nhập tên tài khoản" />
-                        <ValidationMessage For="@(() => loginModel.UserName)" />
+                        <InputText id="UserName" class="form-control rounded-start" @bind-Value="register.UserName" placeholder="Nhập tên tài khoản" />
+                        <ValidationMessage For="@(() => register.UserName)" />
                     </div>
                     <div class="mb-3">
                         <label for="Password" class="form-label">Mật khẩu</label>
                         <div class="input-group">
-                            <InputText id="Password" type="password" class="form-control rounded-start" @bind-Value="loginModel.Password" placeholder="Nhập mật khẩu" />
+                            <InputText id="Password" type="password" class="form-control rounded-start" @bind-Value="register.Password" placeholder="Nhập mật khẩu" />
                         </div>
-                        <ValidationMessage For="@(() => loginModel.Password)" />
+                        <ValidationMessage For="@(() => register.Password)" />
                     </div>
                     <div class="mb-3">
                         <label for="Confirm " class="form-label">Nhập lại mật khẩu</label>
                         <div class="input-group">
-                            <InputText id="Confirm" type="password" class="form-control rounded-start" @bind-Value="loginModel.Password" placeholder="Nhập mật khẩu" />
+                            <InputText id="Confirm" type="password" class="form-control rounded-start" @bind-Value="register.ConformPassword" placeholder="Nhập mật khẩu" />
                         </div>
-                        <ValidationMessage For="@(() => loginModel.Password)" />
+                        <ValidationMessage For="@(() => register.ConformPassword)" />
                     </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" @bind-value="checKed" class="form-check-input" id="checkbox">
@@ -124,7 +126,7 @@
                         <a href="forgotPass" class="text-primary">Quên mật khẩu?</a>
                     </div>
                     <div class="text-center mt-3">
-                        Bạn đã có tài khoản? <a class="text-primary" href="Pages/Register">Đăng nhập ngay</a><br />
+                        Bạn đã có tài khoản? <a class="text-primary" href="/login">Đăng nhập ngay</a><br />
                     </div>
                     <div class="text-center mt-3"><strong>Hoặc đăng nhập bằng</strong></div>
                     <div class="text-center mt-3">
@@ -139,7 +141,6 @@
                             Đăng nhập với Facebook
                         </a>
                     </div>
-
                 </EditForm>
             </div>
         </div>
@@ -147,63 +148,93 @@
 </div>
 
 @code {
-    public class AccountLogin
-    {
-        [Required(ErrorMessage = "Tên tài khoản không được bỏ trống.")]
-        public string UserName { get; set; }
-
-        [Required(ErrorMessage = "Mật khẩu không được bỏ trống.")]
-        public string Password { get; set; }
-    }
-
-    private AccountLogin loginModel = new AccountLogin();
+    private RegisterDto register = new RegisterDto();
+    private List<Account> accounts;
+    private LoginDto login;
     private string errorMessage;
     private string successMessage;
     private bool checKed = false;
     private string errorChecked;
+    private string token;
 
-
-    private async Task HandleLogin()
+    private async Task SubmitLogin()
     {
         try
         {
-
-            var response = await HttpClient.PostAsJsonAsync("api/account/login", loginModel);
             if (!checKed)
             {
                 errorChecked = "Bạn cần đồng ý với chính sách và điều khoản";
                 return;
             }
             else
-            {
                 errorChecked = null;
-            }
+
+            var response = await http.PostAsJsonAsync("api/User/RegisterUser", register);
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "LoggedInUser", loginModel.UserName);
-                successMessage = "Đăng nhập thành công!";
-                errorMessage = null;
-                NavigationManager.NavigateTo("/", forceLoad: true);
+                try
+                {
+                    login = new LoginDto()
+                        {
+                            UserName = register.UserName,
+                            Password = register.Password
+                        };
+                    var responseLogin = await http.PostAsJsonAsync("api/User/LoginUser", login);
+
+                    if (responseLogin.IsSuccessStatusCode)
+                    {
+                        token = await responseLogin.Content.ReadAsStringAsync();
+                        await js.InvokeVoidAsync("localStorage.setItem", "token", token);
+                        http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                        navigation.NavigateTo("/", forceLoad: true);
+                    }
+                    else
+                    {
+                        errorMessage = await responseLogin.Content.ReadAsStringAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                    errorMessage = "Đã xảy ra lỗi đăng nhập: " + ex.Message;
+                    successMessage = null;
+                    await ClearErrorMessage();
+                }
             }
             else
             {
-                errorMessage = "Tài khoản hoặc mật khẩu không đúng";
+                errorMessage = await response.Content.ReadAsStringAsync();
                 successMessage = null;
-                await ClearErrorMessageAfterDelay();
+                await ClearErrorMessage();
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "Đã xảy ra lỗi: " + ex.Message;
+            errorMessage = "Đã xảy ra lỗi đăng ký: " + ex.Message;
             successMessage = null;
-            await ClearErrorMessageAfterDelay();
+            await ClearErrorMessage();
         }
     }
 
-    private async Task ClearErrorMessageAfterDelay()
+    private async Task ClearErrorMessage()
     {
         await Task.Delay(3000);
         errorMessage = null;
         StateHasChanged();
+    }
+
+    private string HashPassword(string password)
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(password);
+            byte[] hashBytes = sha256.ComputeHash(inputBytes);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length && i < 16; i++)
+            {
+                sb.Append(hashBytes[i].ToString("x2"));
+            }
+            return sb.ToString();
+        }
     }
 }

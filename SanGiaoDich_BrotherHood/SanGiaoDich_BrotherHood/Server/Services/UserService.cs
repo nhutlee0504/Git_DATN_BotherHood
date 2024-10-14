@@ -66,7 +66,7 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             var userInfo = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == loginDto.UserName);
             if (userInfo == null || !VerifyPassword(loginDto.Password, userInfo.Password))
             {
-                throw new UnauthorizedAccessException("Email hoặc mật khẩu không đúng.");
+                throw new UnauthorizedAccessException("Tên đăng nhập hoặc mật khẩu không đúng.");
             }
             // Kiểm tra nếu tài khoản đã bị xóa
             if (userInfo.IsDelete == true)
