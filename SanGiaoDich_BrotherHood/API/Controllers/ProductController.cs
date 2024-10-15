@@ -20,9 +20,16 @@ namespace API.Controllers
         }
 
         [HttpGet("GetProductId")]
-        public async Task<Product> GetProductById(int id)
+        public async Task<IActionResult> GetProductById(int id)
         {
-            return await prod.GetProductById(id);
+            try
+            {
+                return Ok(await prod.GetProductById(id));
+            }
+            catch (NotImplementedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("name")]

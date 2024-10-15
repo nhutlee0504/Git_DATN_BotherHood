@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Http;
-using SanGiaoDich_BrotherHood.Server.Dto;
+using SanGiaoDich_BrotherHood.Shared.Dto;
 using SanGiaoDich_BrotherHood.Shared.Models;
 using System.Collections;
 using System.Collections.Generic;
