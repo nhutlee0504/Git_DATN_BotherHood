@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using SanGiaoDich_BrotherHood.Server.Dto;
+using SanGiaoDich_BrotherHood.Shared.Dto;
 using SanGiaoDich_BrotherHood.Server.Services;
 using System;
 using System.Collections;

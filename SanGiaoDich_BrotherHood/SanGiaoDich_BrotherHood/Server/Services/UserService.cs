@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SanGiaoDich_BrotherHood.Server.Data;
-using SanGiaoDich_BrotherHood.Server.Dto;
+using SanGiaoDich_BrotherHood.Shared.Dto;
 using SanGiaoDich_BrotherHood.Shared.Models;
 using System;
 using System.Collections.Generic;
