@@ -1,19 +1,38 @@
 ﻿@page "/sanpham"
+@using System.Text.Json
 @using SanGiaoDich_BrotherHood.Shared.Models
 @inject NavigationManager navigation
 @inject HttpClient http
 
+<style>
+    .prod:hover {
+        transform: scale(1.05);
+    }
+</style>
+
 <div class="container-fluid mt-3">
     <!-- Breadcrumb -->
-    <div class="breadcrumb">
-        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="#"><i class="fa-solid fa-house" style="color: #667085;"></i></a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
-            </ol>
-        </nav>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="breadcrumb">
+                <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="fa-solid fa-house" style="color: #667085;"></i></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Sản phẩm</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-9">
+                <div class="col-md-4 offset-md-4 m-3">
+                    @if (message != null)
+                    {
+                        <div class="alert-warning fw-bold fs-5" id="messagePrice">@message</div>
+                    }
+            </div>
+        </div>
     </div>
 
     <div class="row">
@@ -21,79 +40,97 @@
         <div class="col-lg-3">
             <div class="card p-3 mb-3">
                 <h5 class="mb-3">Loại</h5>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="aoCheck">
-                    <label class="form-check-label" for="aoCheck">Áo</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="quanCheck">
-                    <label class="form-check-label" for="quanCheck">Quần</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="giayCheck">
-                    <label class="form-check-label" for="giayCheck">Giày</label>
-                </div>
-                <!-- Price Filter with Button on Same Row -->
+                @if (categories != null)
+                {
+                    foreach (var x in categories)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="@x.IDCategory" id="@x.IDCategory"
+                                   @onchange="@(e => FilterByCategories(x.IDCategory, (bool)((ChangeEventArgs)e).Value))">
+                            <label class="form-check-label" for="aoCheck">@x.NameCate</label>
+                        </div>
+                    }
+                }
+
                 <h5 class="mt-3">Giá tiền</h5>
                 <div class="d-flex align-items-center">
-                    <input type="text" class="form-control me-2" placeholder="Low">
-                    <input type="text" class="form-control me-2" placeholder="High">
-                    <button class="btn btn-success">Filter</button>
+                    <input type="text" class="form-control me-2" placeholder="Low" @bind="lowPrice" min="0">
+                    <input type="text" class="form-control me-2" placeholder="High" @bind="highPrice" min="0">
+                    <button class="btn btn-success" @onclick="FilterByPrice">Filter</button>
                 </div>
 
                 <h5 class="mt-4">Sắp xếp</h5>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="sortOrder" id="giaTangDan" checked>
+                    <input class="form-check-input" type="radio" name="sortOrder" id="giaTangDan" value="priceLowToHigh" @onchange="@(e=>SortOrder("priceLowToHigh"))">
                     <label class="form-check-label" for="giaTangDan">Giá tăng dần</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="sortOrder" id="giaGiamDan">
+                    <input class="form-check-input" type="radio" name="sortOrder" id="giaGiamDan" value="priceHighToLow" @onchange="@(e=>SortOrder("priceHighToLow"))">
                     <label class="form-check-label" for="giaGiamDan">Giá giảm dần</label>
                 </div>
             </div>
         </div>
 
-        <!-- Product Grid (Hardcoded Product Cards) -->
+        <!-- Product Grid -->
         <div class="col-lg-9">
             <div class="row">
-                <!-- Product 1 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card">
-                        <a href="ChiTietSanPham">
-                            <img src="/AnhSanPham/ao.jpeg" class="card-img-top" alt="Tên sản phẩm">
-                        </a>
-                        <div class="card-body">
-                            <h5 class="card-title">Tên sản phẩm 1</h5>
-                            <p class="card-text text-danger"><strong>140.000 VND</strong></p>
-                            <div class="d-flex justify-content-between">
-                                <p class="card-text">Cần Thơ</p>
-                                <p class="card-text text-muted">15 phút trước</p>
+                @if (pagedProducts != null)
+                {
+                    foreach (var product in pagedProducts)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4 prod">
+                            <div class="card">
+                                <a href="ChiTietSanPham">
+                                    <img src="@GetImage(product.IDProduct)" class="card-img-top" alt="@product.Name" />
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">@product.Name</h5>
+                                    <p class="card-text text-danger"><strong>@product.Price.ToString("N0") VND</strong></p>
+                                    <div class="d-flex justify-content-between">
+                                        <p class="card-text">Cần Thơ</p>
+                                        <p class="card-text text-muted">@product.StartDate.Value.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    }
+                }
+                else
+                {
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                </div>
+                }
             </div>
 
             <!-- Pagination -->
-            <nav aria-label="Product Pagination">
+            <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                    <li class="page-item"><a class="page-link" href="#">68</a></li>
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link text-black" aria-label="Previous" @onclick="() => ChangePage(currentPage - 1)">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    @for (var i = currentPage - 2; i <= currentPage + 2; i++)
+                    {
+                        int j = i;
+                        if (i > 0 & i <= totalPages)
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <a class="page-link text-black bg-white" @onclick="() => ChangePage(j)">
+                                    <span>@i</span>
+                                </a>
+                            </li>
+
+                        }
+                    }
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link text-black" aria-label="Next" @onclick="() => ChangePage(currentPage + 1)">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
     </div>
 </div>
-
-@code {
-    private List<Product> products;
-    protected override async Task OnInitializedAsync()
-    {
-
-    }
-}
-
-

@@ -7,6 +7,7 @@ using SanGiaoDich_BrotherHood.Server.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 
 namespace SanGiaoDich_BrotherHood.Server.Controllers
 {
@@ -18,6 +19,21 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
         public ProductController(IProduct prods)
         {
             prod = prods;
+        }
+
+        [HttpGet("GetAllProduct")]
+        public async Task<IActionResult> GetAllProduct()
+        {
+            try
+            {
+                var products = await prod.GetAllProductsAsync();
+                return Ok(products);
+            }
+            catch (NotImplementedException ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("id")]

@@ -19,6 +19,21 @@ namespace API.Controllers
             prod = prods;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllProduct()
+        {
+            try
+            {
+                var products = await prod.GetAllProductsAsync();
+                return Ok(products);
+            }
+            catch (NotImplementedException ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("GetProductId")]
         public async Task<Product> GetProductById(int id)
         {

@@ -167,20 +167,24 @@ namespace API.Services
         }
 
         //Phương thức ngoài
+
         private string GenerateJwtToken(Account user)
         {
+            // Kiểm tra người dùng không null
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
-            {
-        new Claim(ClaimTypes.Name, user.UserName),
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.Role, user.Role),
-        new Claim("FullName", user.FullName),
-        new Claim("PhoneNumber", user.PhoneNumber),
-        new Claim("Gender", user.Gender),
-        new Claim("Birthday", user.Birthday?.ToString("o")),
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+        new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+        new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
+        new Claim("FullName", user.FullName ?? string.Empty),
+        new Claim("PhoneNumber", user.PhoneNumber ?? string.Empty),
+        new Claim("Gender", user.Gender ?? string.Empty),
+        new Claim("Birthday", user.Birthday?.ToString("o") ?? string.Empty),
         new Claim("ImageAccount", user.ImageAccount ?? string.Empty),
         new Claim("IsDelete", user.IsDelete.ToString()),
         new Claim("TimeBanned", user.TimeBanned?.ToString("o") ?? string.Empty)
@@ -195,7 +199,6 @@ namespace API.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
         private string HashPassword(string password) // Băm mật khẩu
         {
             using (var sha256 = SHA256.Create())
@@ -234,61 +237,72 @@ namespace API.Services
         }
         private bool IsValidPassword(string password)//Bắt lỗi quy chuẩn password
         {
-            return password.Length >= 8 && // Độ dài tối thiểu
+            return password.Length >= 6 && // Độ dài tối thiểu
                    password.Any(char.IsUpper) && // Có ít nhất một chữ hoa
                    password.Any(char.IsLower) && // Có ít nhất một chữ thường
                    password.Any(char.IsDigit) && // Có ít nhất một số
                    password.Any(ch => "!@#$%^&*()_-+=<>?/[]{}|~".Contains(ch)); // Có ít nhất một ký tự đặc biệt
         }
-        public bool IsValidPhone(string phone)
+        public bool IsValidPhone(string phone)//Bắt lỗi số điện thoại
         {
             string pattern = @"^(?:\+84|0)(?:3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-9]|2[0-9]{1})\d{7}$";
             Regex regex = new Regex(pattern);
             return regex.IsMatch(phone);
         }
 
-        private (string UserName, string Email, string FullName, string PhoneNumber, string Gender, DateTime? Birthday, string ImageAccount, string Role, bool IsDelete, DateTime? TimeBanned) GetUserInfoFromClaims()
+        private (string UserName, string Email, string FullName, string PhoneNumber, string Gender, string IDCard, DateTime? Birthday, string ImageAccount, string Role, bool IsDelete, DateTime? TimeBanned) GetUserInfoFromClaims()
         {
             var userClaim = _httpContextAccessor.HttpContext?.User;
             if (userClaim != null && userClaim.Identity.IsAuthenticated)
             {
-                var userNameClaim = userClaim.FindFirst(ClaimTypes.Name);
-                var emailClaim = userClaim.FindFirst(ClaimTypes.Email);
-                var fullNameClaim = userClaim.FindFirst("FullName");
-                var phoneNumberClaim = userClaim.FindFirst("PhoneNumber");
-                var genderClaim = userClaim.FindFirst("Gender");
-                var birthdayClaim = userClaim.FindFirst("Birthday");
-                var imageAccountClaim = userClaim.FindFirst("ImageAccount");
-                var roleClaim = userClaim.FindFirst(ClaimTypes.Role);
-                var isDeleteClaim = userClaim.FindFirst("IsDelete");
-                var timeBannedClaim = userClaim.FindFirst("TimeBanned");
+                var userNameClaim = userClaim.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
+                var emailClaim = userClaim.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+                var fullNameClaim = userClaim.FindFirst("FullName")?.Value ?? string.Empty;
+                var phoneNumberClaim = userClaim.FindFirst("PhoneNumber")?.Value ?? string.Empty;
+                var genderClaim = userClaim.FindFirst("Gender")?.Value ?? string.Empty;
+                var idCardClaim = userClaim.FindFirst("IDCard")?.Value ?? string.Empty;
+                var imageAccountClaim = userClaim.FindFirst("ImageAccount")?.Value ?? string.Empty;
+                var roleClaim = userClaim.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
 
                 DateTime? birthday = null;
-                if (!string.IsNullOrWhiteSpace(birthdayClaim?.Value))
+                var birthdayClaimValue = userClaim.FindFirst("Birthday")?.Value;
+                if (!string.IsNullOrWhiteSpace(birthdayClaimValue))
                 {
-                    if (DateTime.TryParse(birthdayClaim.Value, out DateTime parsedBirthday))
+                    if (DateTime.TryParse(birthdayClaimValue, out DateTime parsedBirthday))
                     {
                         birthday = parsedBirthday;
                     }
-                    else
-                    {
-                        // Log or handle the invalid date format here if needed
-                    }
+                }
+
+                bool isDelete = false;
+                var isDeleteClaimValue = userClaim.FindFirst("IsDelete")?.Value;
+                if (isDeleteClaimValue != null && bool.TryParse(isDeleteClaimValue, out bool parsedIsDeleted))
+                {
+                    isDelete = parsedIsDeleted;
+                }
+
+                DateTime? timeBanned = null;
+                var timeBannedClaimValue = userClaim.FindFirst("TimeBanned")?.Value;
+                if (!string.IsNullOrWhiteSpace(timeBannedClaimValue) && DateTime.TryParse(timeBannedClaimValue, out DateTime parsedTimeBanned))
+                {
+                    timeBanned = parsedTimeBanned;
                 }
 
                 return (
-                    userNameClaim?.Value,
-                    emailClaim?.Value,
-                    fullNameClaim?.Value,
-                    phoneNumberClaim?.Value,
-                    genderClaim?.Value,
+                    userNameClaim,
+                    emailClaim,
+                    fullNameClaim,
+                    phoneNumberClaim,
+                    genderClaim,
+                    idCardClaim,
                     birthday,
-                    imageAccountClaim?.Value,
-                    roleClaim?.Value,
-                    isDeleteClaim != null && bool.TryParse(isDeleteClaim.Value, out bool isDeleted) && isDeleted,
-                    timeBannedClaim != null ? DateTime.TryParse(timeBannedClaim.Value, out DateTime parsedTimeBanned) ? parsedTimeBanned : (DateTime?)null : (DateTime?)null
+                    imageAccountClaim,
+                    roleClaim,
+                    isDelete,
+                    timeBanned
                 );
             }
+
             throw new UnauthorizedAccessException("Vui lòng đăng nhập vào hệ thống.");
         }
     }

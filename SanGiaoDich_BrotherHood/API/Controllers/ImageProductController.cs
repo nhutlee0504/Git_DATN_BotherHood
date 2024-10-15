@@ -72,5 +72,11 @@ namespace API.Controllers
                 return NotFound(ex.Message);
             }
         }
+
+        [HttpGet("GetImages")]
+        public async Task<IActionResult> GetImages()
+        {
+            return Ok(await _imageProduct.GetImages());
+        }
     }
 }

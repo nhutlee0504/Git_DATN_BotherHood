@@ -119,6 +119,10 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             return imageProducts;
         }
 
+        public async Task<IEnumerable<ImageProduct>> GetImages()
+        {
+            return await _context.ImageProducts.ToListAsync();
+        }
 
         public async Task<ImageProduct> AddImage(ImageProduct imageProduct)
         {

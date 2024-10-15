@@ -19,7 +19,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             this.category = category;
         }
 
-        [HttpGet]
+        [HttpGet("GetCategories")]
         public async Task<ActionResult> GetCategories()
         {
             return Ok(await category.GetCategories());

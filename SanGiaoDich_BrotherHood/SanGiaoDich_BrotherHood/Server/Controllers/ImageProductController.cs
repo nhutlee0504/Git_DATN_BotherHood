@@ -60,7 +60,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             }
         }
 
-        [HttpGet("GetImageProduct")]
+        [HttpGet("GetImageProduct/{id}")]
         public async Task<IActionResult> GetImageProduct(int id)
         {
             try
@@ -71,6 +71,12 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             {
                 return NotFound(ex.Message);
             }
+        }
+
+        [HttpGet("GetImages")]
+        public async Task<IActionResult> GetImages()
+        {
+            return Ok(await _imageProduct.GetImages());
         }
     }
 }

@@ -126,6 +126,10 @@ namespace API.Services
             return imageProducts;
         }
 
+        public async Task<IEnumerable<ImageProduct>> GetImages()
+        {
+            return await _context.ImageProducts.ToListAsync();
+        }
 
         public async Task<ImageProduct> AddImage(ImageProduct imageProduct)
         {
@@ -181,6 +185,5 @@ namespace API.Services
             }
             throw new UnauthorizedAccessException("Vui lòng đăng nhập vào hệ thống.");
         }
-
     }
 }
