@@ -35,7 +35,7 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             // Kiểm tra quy chuẩn mật khẩu
             if (!IsValidPassword(registerDto.Password))
             {
-                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt");
             }
 
             // Kiểm tra xem username đã tồn tại hay chưa
@@ -155,14 +155,23 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             await _context.SaveChangesAsync();
             return user; // Trả về thông tin đã cập nhật
         }
-        public async Task<Account> ChangePassword(string username, string password)
+        public async Task<Account> ChangePassword(string username, Shared.Dto.InfoAccountDto info)
         {
+            if (!IsValidPassword(info.Password))
+                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt");
             var userFind = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
-            userFind.Password = HashPassword(password);
+            userFind.Password = HashPassword(info.Password);
             await _context.SaveChangesAsync();
             return userFind;
         }
 
+        public async Task<IEnumerable<Account>> GetAllAccount()
+        {
+            var get = await _context.Accounts.ToListAsync();
+            if (get == null)
+                throw new NotImplementedException("Không tìm thấy danh sách");
+            return get;
+        }
 
         //Phương thức ngoài
 

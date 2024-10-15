@@ -158,12 +158,14 @@ namespace API.Services
             await _context.SaveChangesAsync();
             return user; // Trả về thông tin đã cập nhật
         }
-        public async Task<Account> ChangePassword(string username, string password)//Cập nhật mật khẩu người dùng đăng nhập
+        public async Task<Account> ChangePassword(string username, InfoAccountDto info)
         {
-            var Pass = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
-            Pass.Password = HashPassword(password);
+            if (!IsValidPassword(info.Password))
+                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt");
+            var userFind = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
+            userFind.Password = HashPassword(info.Password);
             await _context.SaveChangesAsync();
-            return Pass;
+            return userFind;
         }
 
         //Phương thức ngoài

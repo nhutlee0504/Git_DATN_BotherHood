@@ -114,17 +114,14 @@
                     </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" @bind-value="checKed" class="form-check-input" id="checkbox">
-                        <label class="form-check-label" for="checkbox">Tôi đồng ý với <a href="#">Chính sách và điều khoản</a></label>
+                        <label class="form-check-label" for="checkbox">Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a></label>
                         @if (!string.IsNullOrEmpty(errorChecked))
                         {
                             <br />
                             <span class="text-danger">@errorChecked</span>
                         }
                     </div>
-                    <button type="submit" class="btn btn-success btn-block w-100 rounded-start">Đăng kí tài khoản</button>
-                    <div class="text-right mt-3">
-                        <a href="forgotPass" class="text-primary">Quên mật khẩu?</a>
-                    </div>
+                    <button type="submit" class="btn btn-success btn-block w-100 rounded-start mt-3 mb-4">Đăng kí tài khoản</button>
                     <div class="text-center mt-3">
                         Bạn đã có tài khoản? <a class="text-primary" href="/login">Đăng nhập ngay</a><br />
                     </div>

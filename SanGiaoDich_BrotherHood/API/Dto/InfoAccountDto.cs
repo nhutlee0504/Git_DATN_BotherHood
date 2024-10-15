@@ -12,5 +12,6 @@ namespace API.Dto
         public string IdCard { get; set; }
         public DateTime? Birthday { get; set; }
         public string Introduce { get; set; }
+        public string Password { get; set; }
     }
 }

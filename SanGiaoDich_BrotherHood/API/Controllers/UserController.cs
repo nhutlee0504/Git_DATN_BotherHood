@@ -99,5 +99,20 @@ namespace API.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("ChangePassword/{username}")]
+        public async Task<IActionResult> ChangePassword(string username, InfoAccountDto info)
+        {
+            try
+            {
+                return Ok(await user.ChangePassword(username, info));
+            }
+            catch (ArgumentException ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

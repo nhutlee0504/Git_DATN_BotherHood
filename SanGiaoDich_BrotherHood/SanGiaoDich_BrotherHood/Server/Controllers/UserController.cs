@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using SanGiaoDich_BrotherHood.Server.Dto;
+using SanGiaoDich_BrotherHood.Shared.Dto;
 using SanGiaoDich_BrotherHood.Server.Services;
 using System;
 using System.Collections;
@@ -25,7 +26,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
 
         [HttpPost]
         [Route("RegisterUser")]
-        public async Task<IActionResult> RegisterUser(RegisterDto registerDto)
+        public async Task<IActionResult> RegisterUser(Server.Dto.RegisterDto registerDto)
         {
             try
             {
@@ -49,7 +50,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
 
         [HttpPost]
         [Route("LoginUser")]
-        public async Task<IActionResult> LoginUser([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> LoginUser([FromBody] Server.Dto.LoginDto loginDto)
         {
             try
             {
@@ -96,7 +97,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
 
         [HttpPut]
         [Route("UpdateInfoAccount")]
-        public async Task<IActionResult> UpdateAccount([FromForm] InfoAccountDto infoAccountDto, IFormFile imageFile = null)
+        public async Task<IActionResult> UpdateAccount([FromForm] Server.Dto.InfoAccountDto infoAccountDto, IFormFile imageFile = null)
         {
             try
             {
@@ -118,11 +119,31 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
         }
 
         [HttpPut]
-        [Route("ChangePassword")]
-        public async Task<IActionResult> ChangePassword(string username, string password)
+        [Route("ChangePassword/{username}")]
+        public async Task<IActionResult> ChangePassword(string username, Shared.Dto.InfoAccountDto info)
         {
-            return Ok(await _user.ChangePassword(username,password));
+            try
+            {
+                return Ok(await _user.ChangePassword(username, info));
+            }
+            catch (ArgumentException ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
 
+        [HttpGet("GetAccounts")]
+        public async Task<IActionResult> GetAllAccount()
+        {
+            try
+            {
+                return Ok(await _user.GetAllAccount());
+            }
+            catch (NotImplementedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
