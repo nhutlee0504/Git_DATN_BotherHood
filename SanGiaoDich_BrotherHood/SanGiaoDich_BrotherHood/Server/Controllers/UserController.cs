@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace SanGiaoDich_BrotherHood.Server.Controllers
 {
@@ -80,7 +81,7 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
         }
         
         [HttpGet]
-        [Route("GetAccountInfoByName")]
+        [Route("GetAccountInfoByName/{username}")]
         public async Task<IActionResult> GetAccountByName(string username)//Xem thông tin tài khoản người khác
         {
             try
@@ -94,30 +95,49 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             }
         }
 
-        [HttpPut]
-        [Route("UpdateInfoAccount")]
-        public async Task<IActionResult> UpdateAccount([FromForm] InfoAccountDto infoAccountDto, IFormFile imageFile = null)
-        {
-            try
-            {
-                var updatedUser = await _user.UpdateAccountInfo(infoAccountDto, imageFile);
-                return Ok(updatedUser); // Trả về thông tin người dùng đã cập nhật
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
+		[HttpPut]
+        [Route("UpdateAccountInfo")]
+		public async Task<IActionResult> UpdateAccountInfo(InfoAccountDto infoAccountDto)
+		{
+			try
+			{
+				var updatedUser = await _user.UpdateAccountInfo(infoAccountDto);
+				return Ok(updatedUser); // Return updated user info
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				return Unauthorized(ex.Message);
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+			}
+		}
 
-        [HttpPut]
+		[HttpPut]
+        [Route("UpdateProfileImage")]
+		public async Task<IActionResult> UpdateProfileImage(IFormFile imageFile)
+		{
+			try
+			{
+				var updatedUser = await _user.UpdateProfileImage(imageFile);
+				return Ok(updatedUser); // Return updated user info
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				return Unauthorized(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+			}
+		}
+
+		[HttpPut]
         [Route("ChangePassword")]
         public async Task<IActionResult> ChangePassword(string username, string password)
         {

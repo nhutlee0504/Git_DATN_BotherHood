@@ -13,7 +13,8 @@ namespace API.Services
         public Task<string> LoginUser(LoginDto loginDto);
         public Task<Account> GetAccountInfo();
         public Task<Account> GetAccountByUserName(string userName);
-        public Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto, IFormFile imageFile = null);
-        public Task<Account> ChangePassword(string username, string password);
+		Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto);
+		Task<Account> UpdateProfileImage(IFormFile imageFile);
+		public Task<Account> ChangePassword(string username, string password);
     }
 }

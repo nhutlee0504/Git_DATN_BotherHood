@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject HttpClient http
 @inject IJSRuntime jsruntime
+@inject NavigationManager NavigationManager
 
 <style>
     * {
@@ -191,7 +192,7 @@
                         }
                         else
                         {
-                            <span>Xin chào, @accountInfo.UserName!</span>
+                            <a href="/ThongTinNguoiDung/@accountInfo.UserName">  <span>Xin chào, @accountInfo.UserName!</span></a>
                             <button @onclick="Logout" class="logout">Đăng xuất</button>
                         }
                     </div>
@@ -292,6 +293,7 @@
             {
                 errorMessage = await response.Content.ReadAsStringAsync();
                 IsLoggedIn = false; // Đánh dấu là người dùng chưa đăng nhập
+                await Logout();
             }
         }
         catch (Exception ex)
@@ -321,6 +323,10 @@
         await jsruntime.InvokeVoidAsync("localStorage.removeItem", "token");
         IsLoggedIn = false;
         accountInfo = null; // Đặt lại thông tin tài khoản
+
+        // Chuyển hướng về trang chủ
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
+
 }
 

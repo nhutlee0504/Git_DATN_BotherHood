@@ -74,34 +74,34 @@
         <div class="col-md-6">
             <div class="form-container p-4 rounded bg-white shadow-sm">
                 <h2 class="text-center mb-4">Đăng nhập tài khoản</h2>
-                @if (!string.IsNullOrEmpty(successMessage))
+                @if (!string.IsNullOrEmpty(SuccessMessage))
                 {
                     <div class="alert alert-success" role="alert">
-                        @successMessage
+                        @SuccessMessage
                     </div>
                 }
-                @if (!string.IsNullOrEmpty(errorMessage))
+                @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
                     <div class="alert alert-danger" role="alert">
-                        @errorMessage
+                        @ErrorMessage
                     </div>
                 }
 
-                <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <EditForm Model="@this" OnValidSubmit="HandleLogin">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
                     <div class="mb-3">
                         <label for="UserName" class="form-label">Tên tài khoản</label>
-                        <InputText id="UserName" class="form-control rounded-start" @bind-Value="loginModel.UserName" placeholder="Nhập tên tài khoản" />
-                        <ValidationMessage For="@(() => loginModel.UserName)" />
+                        <InputText id="UserName" class="form-control rounded-start" @bind-Value="UserName" placeholder="Nhập tên tài khoản" />
+                        <ValidationMessage For="@(() => UserName)" />
                     </div>
                     <div class="mb-3">
                         <label for="Password" class="form-label">Mật khẩu</label>
                         <div class="input-group">
-                            <InputText id="Password" type="password" class="form-control rounded-start" @bind-Value="loginModel.Password" placeholder="Nhập mật khẩu" />
+                            <InputText id="Password" type="password" class="form-control rounded-start" @bind-Value="Password" placeholder="Nhập mật khẩu" />
                         </div>
-                        <ValidationMessage For="@(() => loginModel.Password)" />
+                        <ValidationMessage For="@(() => Password)" />
                     </div>
                     <button type="submit" class="btn btn-success btn-block w-100 rounded-start">Đăng nhập</button>
                     <div class="text-right mt-3">
@@ -131,51 +131,43 @@
 </div>
 
 @code {
-    public class AccountLogin
-    {
-        [Required(ErrorMessage = "Tên tài khoản không được bỏ trống.")]
-        public string UserName { get; set; }
-
-        [Required(ErrorMessage = "Mật khẩu không được bỏ trống.")]
-        public string Password { get; set; }
-    }
-
-    private AccountLogin loginModel = new AccountLogin();
-    private string errorMessage;
-    private string successMessage;
+    private string UserName { get; set; }
+    private string Password { get; set; }
+    private string ErrorMessage { get; set; }
+    private string SuccessMessage { get; set; }
+    private string Token { get; set; }
 
     private async Task HandleLogin()
     {
+        var loginDto = new { UserName, Password };
+
         try
         {
-            var response = await HttpClient.PostAsJsonAsync("api/account/login", loginModel);
+            var response = await HttpClient.PostAsJsonAsync("api/user/LoginUser", loginDto);
 
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "LoggedInUser", loginModel.UserName);
-                successMessage = "Đăng nhập thành công!";
-                errorMessage = null;
+                Token = await response.Content.ReadAsStringAsync();
+                SuccessMessage = "Đăng nhập thành công!";
+
+                // Lưu token vào local storage
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "token", Token);
+
+                // Thiết lập token cho các yêu cầu HTTP sau này
+                HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+
+                // Quay về trang chủ
                 NavigationManager.NavigateTo("/", forceLoad: true);
             }
             else
             {
-                errorMessage = "Tài khoản hoặc mật khẩu không đúng";
-                successMessage = null;
-                await ClearErrorMessageAfterDelay();
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                ErrorMessage = errorMessage;
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "Đã xảy ra lỗi: " + ex.Message;
-            successMessage = null;
-            await ClearErrorMessageAfterDelay();
+            ErrorMessage = "Có lỗi xảy ra: " + ex.Message;
         }
-    }
-
-    private async Task ClearErrorMessageAfterDelay()
-    {
-        await Task.Delay(3000);
-        errorMessage = null;
-        StateHasChanged();
     }
 }

@@ -77,27 +77,46 @@ namespace API.Controllers
             }
         }
 
-        [HttpPut("UpdateInfoAccount")]
-        public async Task<IActionResult> UpdateAccount([FromForm] InfoAccountDto infoAccountDto, IFormFile imageFile = null)
-        {
-            try
-            {
-                var updatedUser = await user.UpdateAccountInfo(infoAccountDto, imageFile);
-                return Ok(updatedUser); // Trả về thông tin người dùng đã cập nhật
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
+		[HttpPut("UpdateAccountInfo")]
+		public async Task<IActionResult> UpdateAccountInfo([FromBody] InfoAccountDto infoAccountDto)
+		{
+			try
+			{
+				var updatedUser = await user.UpdateAccountInfo(infoAccountDto);
+				return Ok(updatedUser); // Return updated user info
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				return Unauthorized(ex.Message);
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+			}
+		}
 
-    }
+		// Endpoint to update profile image
+		[HttpPut("UpdateProfileImage")]
+		public async Task<IActionResult> UpdateProfileImage(IFormFile imageFile)
+		{
+			try
+			{
+				var updatedUser = await user.UpdateProfileImage(imageFile);
+				return Ok(updatedUser); // Return updated user info
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				return Unauthorized(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+			}
+		}
+
+	}
 }

@@ -114,51 +114,70 @@ namespace API.Services
 
             return user; // Trả về thông tin tài khoản
         }
-        public async Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto, IFormFile imageFile = null)//Cập nhật tài khoản
-        {
-            // Lấy thông tin người dùng từ claims
-            var userClaims = GetUserInfoFromClaims();
-            var user = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == userClaims.UserName);
+		public async Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto)//Cập nhật tài khoản
+		{
+			// Lấy thông tin người dùng từ claims
+			var userClaims = GetUserInfoFromClaims();
+			var user = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == userClaims.UserName);
 
-            if (user == null)
-            {
-                throw new UnauthorizedAccessException("Không tìm thấy người dùng.");
-            }
-            // Kiểm tra số điện thoại
-            if (!IsValidPhone(infoAccountDto.Phone))
-            {
-                throw new ArgumentException("Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại đúng định dạng.");
-            }
-            // Cập nhật thông tin tài khoản
-            user.FullName = infoAccountDto.FullName;
-            user.PhoneNumber = infoAccountDto.Phone;
-            user.Gender = infoAccountDto.Gender;
-            user.Birthday = infoAccountDto.Birthday;
+			if (user == null)
+			{
+				throw new UnauthorizedAccessException("Không tìm thấy người dùng.");
+			}
+			// Kiểm tra số điện thoại
+			if (!IsValidPhone(infoAccountDto.Phone))
+			{
+				throw new ArgumentException("Số điện thoại không hợp lệ");
+			}
+			// Cập nhật thông tin tài khoản
+			user.FullName = infoAccountDto.FullName;
+			user.Email = infoAccountDto.Email;
+			user.PhoneNumber = infoAccountDto.Phone;
+			user.Gender = infoAccountDto.Gender;
+			user.Birthday = infoAccountDto.Birthday;
+			user.Introduce = infoAccountDto.Introduce;
 
-            // Nếu có file hình ảnh, lưu vào thư mục và cập nhật tên ảnh
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AnhAvatar");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
+			await _context.SaveChangesAsync();
+			return user; // Trả về thông tin đã cập nhật
+		}
 
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                var filePath = Path.Combine(uploadsFolder, fileName);
+		public async Task<Account> UpdateProfileImage(IFormFile imageFile = null)
+		{
+			// Lấy thông tin người dùng từ claims
+			var userClaims = GetUserInfoFromClaims();
+			var user = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == userClaims.UserName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
+			if (user == null)
+			{
+				throw new UnauthorizedAccessException("Không tìm thấy người dùng.");
+			}
 
-                user.ImageAccount = fileName; // Chỉ lưu tên ảnh
-            }
+			// Nếu có file hình ảnh, lưu vào thư mục và cập nhật tên ảnh
+			if (imageFile != null && imageFile.Length > 0)
+			{
+				var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AnhAvatar");
+				if (!Directory.Exists(uploadsFolder))
+				{
+					Directory.CreateDirectory(uploadsFolder);
+				}
 
-            await _context.SaveChangesAsync();
-            return user; // Trả về thông tin đã cập nhật
-        }
-        public async Task<Account> ChangePassword(string username, string password)//Cập nhật mật khẩu người dùng đăng nhập
+				// Lưu tên file gốc
+				var originalFileName = Path.GetFileName(imageFile.FileName);
+				var filePath = Path.Combine(uploadsFolder, originalFileName);
+
+				// Lưu file vào thư mục
+				using (var stream = new FileStream(filePath, FileMode.Create))
+				{
+					await imageFile.CopyToAsync(stream);
+				}
+
+				user.ImageAccount = originalFileName; // Lưu tên ảnh vào cơ sở dữ liệu
+			}
+
+			await _context.SaveChangesAsync();
+			return user; // Trả về thông tin đã cập nhật
+		}
+		public async Task<Account> ChangePassword(string username, string password)//Cập nhật mật khẩu người dùng đăng nhập
         {
             var Pass = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
             Pass.Password = HashPassword(password);
@@ -254,6 +273,17 @@ namespace API.Services
             var userClaim = _httpContextAccessor.HttpContext?.User;
             if (userClaim != null && userClaim.Identity.IsAuthenticated)
             {
+                // Kiểm tra thời gian hết hạn của token
+                var expirationClaim = userClaim.FindFirst("exp");
+                if (expirationClaim != null && long.TryParse(expirationClaim.Value, out long exp))
+                {
+                    var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime;
+                    if (expirationTime < DateTime.UtcNow)
+                    {
+                        throw new UnauthorizedAccessException("Token đã hết hạn. Vui lòng đăng nhập lại.");
+                    }
+                }
+
                 var userNameClaim = userClaim.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
                 var emailClaim = userClaim.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
                 var fullNameClaim = userClaim.FindFirst("FullName")?.Value ?? string.Empty;
@@ -265,12 +295,9 @@ namespace API.Services
 
                 DateTime? birthday = null;
                 var birthdayClaimValue = userClaim.FindFirst("Birthday")?.Value;
-                if (!string.IsNullOrWhiteSpace(birthdayClaimValue))
+                if (!string.IsNullOrWhiteSpace(birthdayClaimValue) && DateTime.TryParse(birthdayClaimValue, out DateTime parsedBirthday))
                 {
-                    if (DateTime.TryParse(birthdayClaimValue, out DateTime parsedBirthday))
-                    {
-                        birthday = parsedBirthday;
-                    }
+                    birthday = parsedBirthday;
                 }
 
                 bool isDelete = false;
@@ -302,7 +329,7 @@ namespace API.Services
                 );
             }
 
-            throw new UnauthorizedAccessException("Vui lòng đăng nhập vào hệ thống.");
+            throw new UnauthorizedAccessException("Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
         }
     }
 }

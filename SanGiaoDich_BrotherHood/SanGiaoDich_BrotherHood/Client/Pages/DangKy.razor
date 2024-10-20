@@ -9,7 +9,6 @@
 {
     <div class="alert alert-danger">@Message</div>
 }
-
 <EditForm Model="registerDto" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -31,6 +30,7 @@
     </div>
     <button type="submit" class="btn btn-primary">Đăng ký</button>
 </EditForm>
+
 
 @if (registeredAccount != null)
 {

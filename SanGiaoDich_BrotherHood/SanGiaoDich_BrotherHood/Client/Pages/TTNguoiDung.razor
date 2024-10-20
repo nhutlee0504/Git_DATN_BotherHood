@@ -1,185 +1,384 @@
-﻿@page "/ThongTinNguoiDung"
+﻿@page "/ThongTinNguoiDung/{username}"
+@using System.Net.Http.Json
+@using SanGiaoDich_BrotherHood.Shared.Dto
+@using SanGiaoDich_BrotherHood.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 
+
+@code {
+	[Parameter] public string username { get; set; }
+	private Account userAccount;
+	private InfoAccountDto infoAccountDto; // New DTO for temporary storage
+	private string errorMessage;
+	private IEnumerable<AddressDetail> userAddress;
+	private AddressDetail firstAddress;
+	private IEnumerable<Bill> userBill;
+	private int countBill;
+	// Đối tượng để lưu tệp
+	private IBrowserFile selectedFile;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadUserData();
+	}
+	private async Task LoadUserData()
+	{
+		try
+		{
+			userAccount = await HttpClient.GetFromJsonAsync<Account>($"api/user/GetAccountInfoByName/{username}");
+			userAddress = await HttpClient.GetFromJsonAsync<IEnumerable<AddressDetail>>($"api/addressdetail/GetAddressDetailsByUserName/{username}");
+			firstAddress = userAddress?.FirstOrDefault();
+			userBill = await HttpClient.GetFromJsonAsync<IEnumerable<Bill>>($"api/bill/GetBillsByUserName/{username}");
+			countBill = userBill.Count();
+
+			// Initialize the DTO with user account info
+			infoAccountDto = new InfoAccountDto
+				{
+					FullName = userAccount.FullName,
+					Email = userAccount.Email,
+					Phone = userAccount.PhoneNumber,
+					Gender = userAccount.Gender,
+					Birthday = userAccount.Birthday,
+					Introduce = userAccount.Introduce
+				};
+		}
+		catch (Exception ex)
+		{
+			errorMessage = "Không thể lấy thông tin tài khoản: " + ex.Message;
+		}
+	}
+	private async Task UpdateAccountInfo()
+	{
+		try
+		{
+			var response = await HttpClient.PutAsJsonAsync("api/user/UpdateAccountInfo", infoAccountDto);
+			if (response.IsSuccessStatusCode)
+			{
+				var updatedUser = await response.Content.ReadFromJsonAsync<Account>();
+				userAccount = updatedUser; // Update local user account with the new information
+				errorMessage = null; // Clear error message
+				NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+			}
+			else
+			{
+				errorMessage = "Cập nhật thông tin không thành công.";
+			}
+		}
+		catch (Exception ex)
+		{
+			errorMessage = "Lỗi xảy ra: " + ex.Message;
+		}
+	}
+	private async Task UploadFile()
+	{
+		if (selectedFile != null)
+		{
+			const long maxFileSize = 10 * 1024 * 1024; // 10MB
+			if (selectedFile.Size > maxFileSize)
+			{
+				errorMessage = "Tệp tải lên không được lớn hơn 10MB.";
+				return;
+			}
+
+			var content = new MultipartFormDataContent();
+			var streamContent = new StreamContent(selectedFile.OpenReadStream(maxFileSize)); // Thay đổi ở đây
+			streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedFile.ContentType);
+			content.Add(streamContent, "imageFile", selectedFile.Name);
+
+			var response = await HttpClient.PutAsync("api/user/UpdateProfileImage", content);
+			if (response.IsSuccessStatusCode)
+			{
+				var updatedUser = await response.Content.ReadFromJsonAsync<Account>();
+				userAccount = updatedUser;
+				errorMessage = null;
+				NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+			}
+			else
+			{
+				var errorDetails = await response.Content.ReadAsStringAsync();
+				errorMessage = $"Tải ảnh lên không thành công. Chi tiết: {errorDetails}";
+			}
+		}
+	}
+
+
+
+
+}
+
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+{
+	<div class="alert alert-danger">@errorMessage</div>
+}
+else if (userAccount != null)
+{
+	<div class="modal fade" id="staticBackdrop" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog modal-xl">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Chỉnh sửa thông tin tài khoản</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="mb-3 col-md-6">
+							<label for="modalFullName" class="form-label">Họ và tên</label>
+							<input type="text" class="form-control" id="modalFullName" @bind="infoAccountDto.FullName" />
+						</div>
+						<div class="mb-3 col-md-6">
+							<label for="modalEmail" class="form-label">Email</label>
+							<input type="email" class="form-control" id="modalEmail" @bind="infoAccountDto.Email" />
+						</div>
+						<div class="mb-3 col-md-6">
+							<label for="modalPhone" class="form-label">Số điện thoại</label>
+							<input type="text" class="form-control" id="modalPhone" @bind="infoAccountDto.Phone" />
+						</div>
+						<div class="mb-3 col-md-6">
+							<label for="modalGender" class="form-label">Giới tính</label>
+							<select class="form-select" id="modalGender" @bind="infoAccountDto.Gender">
+								<option value="">Chọn giới tính</option>
+								<option value="Nam">Nam</option>
+								<option value="Nữ">Nữ</option>
+								<option value="Khác">Khác</option>
+							</select>
+						</div>
+						<div class="mb-3 col-md-6">
+							<label for="modalBirthday" class="form-label">Ngày sinh</label>
+							<input type="date" class="form-control" id="modalBirthday" @bind="infoAccountDto.Birthday" />
+						</div>
+						<div class="mb-3 col-md-6">
+							<label for="modalIntroduct" class="form-label">Giới thiệu</label>
+							<textarea class="form-control" id="modalIntroduct" rows="3" @bind="infoAccountDto.Introduce"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+					<button type="button" class="btn btn-primary" @onclick="UpdateAccountInfo">Lưu thay đổi</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Modal -->
+	<div class="container mt-4">
+		<div class="row">
+			<!-- Left Sidebar: User Info -->
+			<div class="col-md-4">
+				<!-- User Profile Card -->
+				<div class="card mb-3">
+					<div class="card-body text-center">
+						<img src="/AnhAvatar/@userAccount.ImageAccount" class="rounded-circle img-fluid avatar-image" alt="Avatar" />
+						<h5 class="mt-3">@userAccount.FullName</h5>
+						<p class="text-muted">#CodeUser</p>
+						<!-- Nút tải ảnh lên -->
+						<button class="btn btn-outline-primary btn-sm mb-3" type="button" onclick="triggerFileInput()">
+							<i class="fa fa-upload"></i> Tải ảnh lên
+						</button>
+
+						<!-- Input file -->
+						<InputFile id="fileInput"
+								   class="btn btn-outline-primary btn-sm mb-3"
+								   OnChange="async e => { selectedFile = e.File; await UploadFile(); }"
+								   accept="image/*"
+								   style="display:none;" />
+
+						<p><i class="fa fa-calendar"></i> Thời gian tham gia: @userAccount.CreatedTime.ToString("dd/MM/yyyy")</p>
+						@if (firstAddress != null)
+						{
+							<p><i class="fa fa-map-marker-alt"></i> Địa chỉ: @firstAddress.AdditionalDetail, @firstAddress.Wardcommune, @firstAddress.District, @firstAddress.ProvinceCity</p>
+						}
+						else
+						{
+							<p>Chưa có địa chỉ nào.</p>
+						}
+					</div>
+				</div>
+
+				<!-- Order and Reputation Info -->
+				<div class="card mb-3">
+					<div class="card-body">
+						<p><i class="fa fa-shopping-cart"></i> Tổng số đơn hàng đã mua: @countBill.ToString()</p>
+						<p><i class="fa-solid fa-shopping-bag"></i> Tổng số đơn hàng đã bán: 0</p>
+						<p>
+							Mức độ uy tín:
+							<span class="fa fa-star checked"></span>
+							<span class="fa fa-star checked"></span>
+							<span class="fa fa-star checked"></span>
+							<span class="fa fa-star"></span>
+							<span class="fa fa-star"></span>
+						</p>
+					</div>
+				</div>
+
+				<!-- Payment Info with Icon -->
+				<div class="card mb-3">
+					<div class="card-body d-flex align-items-center justify-content-start">
+						<i class="fa-solid fa-wallet" style="font-size: 30px; margin-right: 15px;"></i> <!-- Icon for payment info -->
+						<div>
+							<p>Tổng số tiền đã nạp: 0</p>
+							<p>Tổng số tiền đã thanh toán: 0</p>
+						</div>
+					</div>
+				</div>
+
+
+				<!-- Action Buttons -->
+				<div class="row">
+					<div class="col-6 d-grid gap-2">
+						<button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Cập nhật thông tin</button>
+						<button class="btn btn-outline-secondary">Đổi mật khẩu</button>
+					</div>
+					<div class="col-6 d-grid gap-2">
+						<a href="post">
+							<button class="btn btn-success">Thêm sản phẩm</button>
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<!-- Right Panel: Product Listings -->
+			<div class="col-md-8">
+				<ul class="nav nav-tabs mb-3">
+					<li class="nav-item">
+						<a class="nav-link active" href="#">Bài đăng của bạn</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#">Sản phẩm yêu thích</a>
+					</li>
+				</ul>
+
+				<!-- Product Card 1 -->
+				<div class="card mb-3 position-relative">
+					<div class="row g-0">
+						<div class="col-md-4">
+							<img src="/AnhSanPham/ao.jpeg" class="img-fluid" alt="Áo thun">
+						</div>
+						<div class="col-md-8">
+							<div class="card-body">
+								<h5 class="card-title">Áo thun</h5>
+								<p class="card-text">199.000 VND</p>
+								<p class="card-text">Loại: Áo</p>
+								<p class="card-text">Người bán: Tên người bán #CodeUser</p>
+								<p class="card-text">
+									Trạng thái:
+									<span class="text-success">Còn</span>
+								</p>
+								<p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+								<div class="d-flex justify-content-end">
+									<button class="btn btn-success">Liên hệ</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="position-absolute top-0 end-0 p-2">
+						<i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+					</div>
+				</div>
+
+				<!-- Product Card 2 -->
+				<div class="card mb-3 position-relative">
+					<div class="row g-0">
+						<div class="col-md-4">
+							<img src="/AnhSanPham/t-shirt.webp" class="img-fluid" alt="Áo thun">
+						</div>
+						<div class="col-md-8">
+							<div class="card-body">
+								<h5 class="card-title">Áo thun</h5>
+								<p class="card-text">199.000 VND</p>
+								<p class="card-text">Loại: Áo</p>
+								<p class="card-text">Người bán: Tên người bán #CodeUser</p>
+								<p class="card-text">
+									Trạng thái:
+									<span class="text-danger">Hết</span>
+								</p>
+								<p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+								<div class="d-flex justify-content-end">
+									<button class="btn btn-success">Liên hệ</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="position-absolute top-0 end-0 p-2">
+						<i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+					</div>
+				</div>
+
+				<!-- Product Card 3 -->
+				<div class="card mb-3 position-relative">
+					<div class="row g-0">
+						<div class="col-md-4">
+							<img src="/AnhSanPham/ao1.webp" class="img-fluid" alt="Áo thun">
+						</div>
+						<div class="col-md-8">
+							<div class="card-body">
+								<h5 class="card-title">Áo thun</h5>
+								<p class="card-text">199.000 VND</p>
+								<p class="card-text">Loại: Áo</p>
+								<p class="card-text">Người bán: Tên người bán #CodeUser</p>
+								<p class="card-text">
+									Trạng thái:
+									<span class="text-success">Còn</span>
+								</p>
+								<p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
+								<div class="d-flex justify-content-end">
+									<button class="btn btn-success">Liên hệ</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="position-absolute top-0 end-0 p-2">
+						<i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
+					</div>
+				</div>
+
+				<!-- Pagination -->
+				<nav aria-label="Page navigation">
+					<ul class="pagination justify-content-center">
+						<li class="page-item"><a class="page-link" href="#">1</a></li>
+						<li class="page-item"><a class="page-link" href="#">2</a></li>
+						<li class="page-item"><a class="page-link" href="#">3</a></li>
+						<li class="page-item"><a class="page-link" href="#">...</a></li>
+						<li class="page-item"><a class="page-link" href="#">67</a></li>
+						<li class="page-item"><a class="page-link" href="#">68</a></li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+	</div>
+}
+else
+{
+	<p>Đang tải thông tin...</p>
+}
 @* @model DashboardViewModel *@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<div class="container mt-4">
-    <div class="row">
-        <!-- Left Sidebar: User Info -->
-        <div class="col-md-4">
-            <!-- User Profile Card -->
-            <div class="card mb-3">
-                <div class="card-body text-center">
-                    <img src="/AnhAvatar/image 4.png" class="rounded-circle img-fluid" style="width: 100px;">
-                    <h5 class="mt-3">Tên của bạn</h5>
-                    <p class="text-muted">#CodeUser</p>
-                    <button class="btn btn-outline-primary btn-sm mb-3">
-                        <i class="fa fa-upload"></i> Tải ảnh lên
-                    </button>
+<script>
+	function triggerFileInput() {
+		document.getElementById('fileInput').click();
+	}
+</script>
 
-                    <!-- User Info -->
-                    <p><i class="fa fa-calendar"></i> Thời gian tham gia: 1/1/2024</p>
-                    <p><i class="fa fa-map-marker-alt"></i> Địa chỉ: Số 1 đường 1, phường Thường Thạnh, quận Cái Răng, tỉnh Cần Thơ</p>
-                </div>
-            </div>
-
-            <!-- Order and Reputation Info -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p><i class="fa fa-shopping-cart"></i> Tổng số đơn hàng đã mua: 0</p>
-                    <p><i class="fa-solid fa-shopping-bag"></i> Tổng số đơn hàng đã bán: 0</p>
-                    <p>
-                        Mức độ uy tín:
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star"></span>
-                        <span class="fa fa-star"></span>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Payment Info with Icon -->
-            <div class="card mb-3">
-                <div class="card-body d-flex align-items-center justify-content-start">
-                    <i class="fa-solid fa-wallet" style="font-size: 30px; margin-right: 15px;"></i> <!-- Icon for payment info -->
-                    <div>
-                        <p>Tổng số tiền đã nạp: 0</p>
-                        <p>Tổng số tiền đã thanh toán: 0</p>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Action Buttons -->
-            <div class="row">
-                <div class="col-6 d-grid gap-2">
-                    <button class="btn btn-outline-success">Cập nhật thông tin</button>
-                    <button class="btn btn-outline-secondary">Đổi mật khẩu</button>
-                </div>
-                <div class="col-6 d-grid gap-2">
-                    <a href="post">
-                        <button class="btn btn-success">Thêm sản phẩm</button>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel: Product Listings -->
-        <div class="col-md-8">
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#">Bài đăng của bạn</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Sản phẩm yêu thích</a>
-                </li>
-            </ul>
-
-            <!-- Product Card 1 -->
-            <div class="card mb-3 position-relative">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="/AnhSanPham/ao.jpeg" class="img-fluid" alt="Áo thun">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title">Áo thun</h5>
-                            <p class="card-text">199.000 VND</p>
-                            <p class="card-text">Loại: Áo</p>
-                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
-                            <p class="card-text">
-                                Trạng thái:
-                                <span class="text-success">Còn</span>
-                            </p>
-                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-success">Liên hệ</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="position-absolute top-0 end-0 p-2">
-                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
-                </div>
-            </div>
-
-            <!-- Product Card 2 -->
-            <div class="card mb-3 position-relative">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="/AnhSanPham/t-shirt.webp" class="img-fluid" alt="Áo thun">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title">Áo thun</h5>
-                            <p class="card-text">199.000 VND</p>
-                            <p class="card-text">Loại: Áo</p>
-                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
-                            <p class="card-text">
-                                Trạng thái:
-                                <span class="text-danger">Hết</span>
-                            </p>
-                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-success">Liên hệ</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="position-absolute top-0 end-0 p-2">
-                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
-                </div>
-            </div>
-
-            <!-- Product Card 3 -->
-            <div class="card mb-3 position-relative">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="/AnhSanPham/ao1.webp" class="img-fluid" alt="Áo thun">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title">Áo thun</h5>
-                            <p class="card-text">199.000 VND</p>
-                            <p class="card-text">Loại: Áo</p>
-                            <p class="card-text">Người bán: Tên người bán #CodeUser</p>
-                            <p class="card-text">
-                                Trạng thái:
-                                <span class="text-success">Còn</span>
-                            </p>
-                            <p class="card-text"><i class="fa fa-clock"></i> Thời gian đăng: 1/1/2025 13:00:00</p>
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-success">Liên hệ</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="position-absolute top-0 end-0 p-2">
-                    <i class="fa fa-heart" style="font-size: 1.5rem; color: grey;"></i>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">...</a></li>
-                    <li class="page-item"><a class="page-link" href="#">67</a></li>
-                    <li class="page-item"><a class="page-link" href="#">68</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</div>
 
 <style>
-    .checked {
-        color: yellow;
-    }
-</style>
+	.checked {
+		color: yellow;
+	}
 
+	.alert {
+		margin-bottom: 1rem;
+	}
+
+	.avatar-image {
+		width: 100px; /* Fixed width */
+		height: 100px; /* Fixed height */
+		object-fit: cover; /* Cover the area without stretching */
+	}
+
+</style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 

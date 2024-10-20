@@ -25,7 +25,8 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             return Ok(await bill.GetBills());
         }
 
-        [HttpGet("userName")]
+        [HttpGet]
+        [Route("GetBillsByUserName/{username}")]
         public async Task<ActionResult> GetBillsByUserName(string userName)
         {
             return Ok(await bill.GetBillsByUserName(userName));

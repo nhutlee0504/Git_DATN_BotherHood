@@ -26,7 +26,8 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
         }
 
 
-        [HttpGet("userName")]
+        [HttpGet]
+        [Route("GetAddressDetailsByUserName/{username}")]
         public async Task<ActionResult> GetAddressDetailsByUserName(string userName)
         {
             return Ok(await address.GetAddressDetailsByUserName(userName));

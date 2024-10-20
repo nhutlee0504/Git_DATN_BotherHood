@@ -66,7 +66,7 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             var userInfo = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == loginDto.UserName);
             if (userInfo == null || !VerifyPassword(loginDto.Password, userInfo.Password))
             {
-                throw new UnauthorizedAccessException("Email hoặc mật khẩu không đúng.");
+                throw new UnauthorizedAccessException("Tài khoản hoặc mật khẩu không đúng.");
             }
             // Kiểm tra nếu tài khoản đã bị xóa
             if (userInfo.IsDelete == true)
@@ -111,7 +111,7 @@ namespace SanGiaoDich_BrotherHood.Server.Services
 
             return user; // Trả về thông tin tài khoản
         }
-        public async Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto, IFormFile imageFile = null)//Cập nhật tài khoản
+        public async Task<Account> UpdateAccountInfo(InfoAccountDto infoAccountDto)//Cập nhật tài khoản
         {
             // Lấy thông tin người dùng từ claims
             var userClaims = GetUserInfoFromClaims();
@@ -128,34 +128,53 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             }
             // Cập nhật thông tin tài khoản
             user.FullName = infoAccountDto.FullName;
+            user.Email = infoAccountDto.Email;
             user.PhoneNumber = infoAccountDto.Phone;
             user.Gender = infoAccountDto.Gender;
             user.Birthday = infoAccountDto.Birthday;
-
-            // Nếu có file hình ảnh, lưu vào thư mục và cập nhật tên ảnh
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AnhAvatar");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
-
-                user.ImageAccount = fileName; // Chỉ lưu tên ảnh
-            }
+            user.Introduce = infoAccountDto.Introduce;
 
             await _context.SaveChangesAsync();
             return user; // Trả về thông tin đã cập nhật
         }
-        public async Task<Account> ChangePassword(string username, string password)
+
+		public async Task<Account> UpdateProfileImage(IFormFile imageFile = null)
+		{
+			// Lấy thông tin người dùng từ claims
+			var userClaims = GetUserInfoFromClaims();
+			var user = await _context.Accounts.FirstOrDefaultAsync(u => u.UserName == userClaims.UserName);
+
+			if (user == null)
+			{
+				throw new UnauthorizedAccessException("Không tìm thấy người dùng.");
+			}
+
+			// Nếu có file hình ảnh, lưu vào thư mục và cập nhật tên ảnh
+			if (imageFile != null && imageFile.Length > 0)
+			{
+				var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AnhAvatar");
+				if (!Directory.Exists(uploadsFolder))
+				{
+					Directory.CreateDirectory(uploadsFolder);
+				}
+
+				// Lưu tên file gốc
+				var originalFileName = Path.GetFileName(imageFile.FileName);
+				var filePath = Path.Combine(uploadsFolder, originalFileName);
+
+				// Lưu file vào thư mục
+				using (var stream = new FileStream(filePath, FileMode.Create))
+				{
+					await imageFile.CopyToAsync(stream);
+				}
+
+				user.ImageAccount = originalFileName; // Lưu tên ảnh vào cơ sở dữ liệu
+			}
+
+			await _context.SaveChangesAsync();
+			return user; // Trả về thông tin đã cập nhật
+		}
+		public async Task<Account> ChangePassword(string username, string password)
         {
             var userFind = await _context.Accounts.FirstOrDefaultAsync(x => x.UserName == username);
             userFind.Password = HashPassword(password);
@@ -253,6 +272,17 @@ namespace SanGiaoDich_BrotherHood.Server.Services
             var userClaim = _httpContextAccessor.HttpContext?.User;
             if (userClaim != null && userClaim.Identity.IsAuthenticated)
             {
+                // Kiểm tra thời gian hết hạn của token
+                var expirationClaim = userClaim.FindFirst("exp");
+                if (expirationClaim != null && long.TryParse(expirationClaim.Value, out long exp))
+                {
+                    var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime;
+                    if (expirationTime < DateTime.UtcNow)
+                    {
+                        throw new UnauthorizedAccessException("Token đã hết hạn. Vui lòng đăng nhập lại.");
+                    }
+                }
+
                 var userNameClaim = userClaim.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
                 var emailClaim = userClaim.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
                 var fullNameClaim = userClaim.FindFirst("FullName")?.Value ?? string.Empty;
@@ -264,12 +294,9 @@ namespace SanGiaoDich_BrotherHood.Server.Services
 
                 DateTime? birthday = null;
                 var birthdayClaimValue = userClaim.FindFirst("Birthday")?.Value;
-                if (!string.IsNullOrWhiteSpace(birthdayClaimValue))
+                if (!string.IsNullOrWhiteSpace(birthdayClaimValue) && DateTime.TryParse(birthdayClaimValue, out DateTime parsedBirthday))
                 {
-                    if (DateTime.TryParse(birthdayClaimValue, out DateTime parsedBirthday))
-                    {
-                        birthday = parsedBirthday;
-                    }
+                    birthday = parsedBirthday;
                 }
 
                 bool isDelete = false;
@@ -301,7 +328,7 @@ namespace SanGiaoDich_BrotherHood.Server.Services
                 );
             }
 
-            throw new UnauthorizedAccessException("Vui lòng đăng nhập vào hệ thống.");
+            throw new UnauthorizedAccessException("Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
         }
     }
 }
