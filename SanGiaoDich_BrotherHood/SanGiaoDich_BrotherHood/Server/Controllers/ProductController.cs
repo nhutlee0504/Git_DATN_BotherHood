@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SanGiaoDich_BrotherHood.Server.Dto;
 using SanGiaoDich_BrotherHood.Shared.Models;
@@ -14,30 +13,32 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private IProduct prod;
-        public ProductController(IProduct prods)
+        private readonly IProduct _productService;
+
+        // Inject service thông qua constructor
+        public ProductController(IProduct productService)
         {
-            prod = prods;
+            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<Product> GetProductById(int id)
         {
-            return await prod.GetProductById(id);
+            return await _productService.GetProductById(id);
         }
 
-        [HttpGet("name")]
+        [HttpGet("name/{name}")]
         public async Task<IEnumerable<Product>> GetProductByName(string name)
         {
-            return await prod.GetProductByName(name);
+            return await _productService.GetProductByName(name);
         }
 
-        [HttpPost("AddProduct")]
+        [HttpPost("add")]
         public async Task<IActionResult> AddProduct([FromForm] ProductDto productDto)
         {
             try
             {
-                var product = await prod.AddProduct(productDto);
+                var product = await _productService.AddProduct(productDto);
                 return CreatedAtAction(nameof(GetProductById), new { id = product.IDProduct }, product);
             }
             catch (InvalidOperationException ex)
@@ -46,18 +47,16 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                // Log the exception as needed
                 return BadRequest(ex.Message);
             }
         }
 
-        [HttpPut("{id}")] // Specify that {id} is a route parameter for the update method
-        public async Task<IActionResult> UpdateProductById(int id, [FromForm] ProductDto productDto)//Cập nhật product
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProductById(int id, [FromForm] ProductDto productDto)
         {
-
             try
             {
-                var updatedProduct = await prod.UpdateProductById(id, productDto);
+                var updatedProduct = await _productService.UpdateProductById(id, productDto);
                 return Ok(updatedProduct);
             }
             catch (NotImplementedException ex)
@@ -70,17 +69,12 @@ namespace SanGiaoDich_BrotherHood.Server.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                // Log the exception as needed
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                // Log the exception as needed
-                return StatusCode(500, "An error occurred while updating the product.");
+                return StatusCode(500, $"Lỗi: {ex.Message}");
             }
         }
-
-
-
     }
 }

@@ -12,10 +12,12 @@
         @for (int i = 0; i < 3; i++)
         {
             <div class="col-md-4">
-                <div class="image-preview border d-flex align-items-center justify-content-center" @onclick="@(() => SelectImage(i))" style="height: 200px;">
+                <div class="image-preview border d-flex align-items-center justify-content-center"
+                     @onclick="() => SelectImage(i)" style="height: 200px; overflow: hidden;">
                     @if (selectedFiles.Count > i && selectedFiles[i] != null)
                     {
-                        <img src="@selectedFiles[i].DataUrl" class="img-fluid" alt="Hình ảnh sản phẩm" />
+                        <img src="@selectedFiles[i].DataUrl" class="img-fluid" alt="Hình ảnh sản phẩm"
+                             style="max-height: 100%; max-width: 100%; object-fit: cover;" />
                     }
                     else
                     {
@@ -25,7 +27,10 @@
             </div>
         }
     </div>
-    <button @onclick="AddImage" class="btn btn-primary mt-2">Chọn hình ảnh</button>
+
+    <button @onclick="AddImage" class="btn btn-primary mt-2" disabled="@IsAddImageDisabled">
+        Chọn hình ảnh
+    </button>
     <span>Xem quy định về <a href="#">Cách chụp ảnh và quay sản phẩm</a> </span>
 </div>
 
@@ -69,74 +74,95 @@
 </div>
 
 @code {
-    private string ProductName { get; set; }
-    private decimal ProductPrice { get; set; }
-    private string ProductType { get; set; }
-    private int ProductQuantity { get; set; }
+    private List<FileModel> selectedFiles = new() { null, null, null };
+    private string ProductName;
+    private string ProductType;
+    private decimal ProductPrice;
+    private int ProductQuantity;
+    private string ProductDescription;
 
-    private List<ImageFile> selectedFiles = new List<ImageFile>
-    {
-        null, null, null  // Khởi tạo ba khung trống
-    };
-
-    private class ImageFile
-    {
-        public IBrowserFile File { get; set; }
-        public string DataUrl { get; set; }
-    }
+    private bool IsAddImageDisabled => selectedFiles.All(file => file != null);
 
     private async Task AddImage()
     {
-        // Hiện hộp thoại chọn tệp
-        var inputFile = await JSRuntime.InvokeAsync<IBrowserFile>("showFileDialog");
-        if (inputFile != null)
+        if (IsAddImageDisabled)
         {
-            for (int i = 0; i < selectedFiles.Count; i++)
-            {
-                if (selectedFiles[i] == null)
-                {
-                    selectedFiles[i] = new ImageFile
-                        {
-                            File = inputFile,
-                            DataUrl = await GetImageDataUrl(inputFile)
-                        };
-                    break;
-                }
-            }
+            await JSRuntime.InvokeVoidAsync("alert", "Bạn đã chọn đủ 3 hình ảnh.");
+            return;
         }
-    }
 
-    private async Task<string> GetImageDataUrl(IBrowserFile file)
-    {
-        using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 3); // Giới hạn 3MB
-        var buffer = new byte[file.Size];
-        await stream.ReadAsync(buffer);
-        return $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        var files = await JSRuntime.InvokeAsync<List<FileModel>>("selectFile");
+        for (int i = 0; i < files.Count && selectedFiles.Count(f => f != null) < 3; i++)
+        {
+            int index = selectedFiles.FindIndex(f => f == null);
+            if (index != -1) selectedFiles[index] = files[i];
+        }
     }
 
     private void SelectImage(int index)
     {
-        // Có thể thêm xử lý khi chọn khung hình ảnh
+        if (index >= 0 && index < selectedFiles.Count) selectedFiles[index] = null;
     }
+
+    private string UserId = "123"; // ID người dùng tạm thời (lấy từ hệ thống đăng nhập)
 
     private async Task SaveProduct()
     {
-        // Xử lý lưu sản phẩm hoặc gửi dữ liệu sản phẩm tới server
-        Console.WriteLine($"Tên sản phẩm: {ProductName}");
-        Console.WriteLine($"Giá sản phẩm: {ProductPrice}");
-        Console.WriteLine($"Loại sản phẩm: {ProductType}");
-        Console.WriteLine($"Số lượng sản phẩm: {ProductQuantity}");
-
-        // Hiển thị danh sách hình ảnh đã chọn
-        foreach (var file in selectedFiles)
+        if (string.IsNullOrWhiteSpace(ProductName) ||
+            string.IsNullOrWhiteSpace(ProductType) ||
+            ProductPrice <= 0 || ProductQuantity <= 0 ||
+            selectedFiles.All(f => f == null))
         {
-            if (file != null)
-            {
-                Console.WriteLine($"Hình ảnh đã chọn: {file.File.Name}");
-            }
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng điền đầy đủ thông tin và chọn ít nhất 1 hình ảnh.");
+            return;
         }
 
-        // Thực hiện hành động sau khi lưu, như chuyển hướng hoặc hiển thị thông báo
-        await JSRuntime.InvokeVoidAsync("alert", "Sản phẩm đã được lưu thành công!");
+        try
+        {
+            var formData = new MultipartFormDataContent
+        {
+            { new StringContent(ProductName), "Name" },
+            { new StringContent(ProductType), "Type" },
+            { new StringContent(ProductPrice.ToString()), "Price" },
+            { new StringContent(ProductQuantity.ToString()), "Quantity" },
+            { new StringContent(ProductDescription ?? string.Empty), "Description" },
+            { new StringContent(UserId), "UserId" } // Thêm thông tin người dùng
+        };
+
+            // Thêm hình ảnh vào formData
+            foreach (var file in selectedFiles.Where(f => f != null))
+            {
+                var imageData = Convert.FromBase64String(file.DataUrl.Split(",")[1]);
+                var byteContent = new ByteArrayContent(imageData);
+                byteContent.Headers.Add("Content-Type", "image/jpeg");
+                formData.Add(byteContent, "Images", "image.jpg");
+            }
+
+            var response = await HttpClient.PostAsync("api/product/add", formData);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Đăng sản phẩm thành công!");
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Lỗi API: {errorMessage}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi khi gửi dữ liệu: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Đã xảy ra lỗi khi gửi dữ liệu.");
+        }
+    }
+
+
+
+    public class FileModel
+    {
+        public string DataUrl { get; set; }
     }
 }
